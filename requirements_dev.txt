@@ -1,0 +1,23 @@
+# Testing
+pytest>=7.2,<9.0
+tox>=3.28,<5.0
+
+# Formatting & Linting
+black>=23.3,<25.0
+flake8>=6.1,<8.0
+isort>=5.12,<7.0
+
+# Packaging & Publishing
+build>=1.0,<2.0
+twine>=4.0,<6.0
+wheel>=0.41,<1.0
+setuptools>=68.0,<75.0
+
+# Development Utilities
+tqdm>=4.66,<5.0
+pyyaml>=6.0,<7.0
+matplotlib>=3.7,<4.0
+rich>=13.5,<14.0
+
+# Editable install (local dev)
+-e .
