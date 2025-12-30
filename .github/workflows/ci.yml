@@ -8,11 +8,13 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    name: CI on ${{ matrix.os }} (Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, windows-latest]
         python-version: ["3.8", "3.9", "3.10", "3.11"]
 
     steps:
@@ -25,13 +27,10 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Upgrade pip
-        run: |
-          python -m pip install --upgrade pip
+        run: python -m pip install --upgrade pip
 
       - name: Install tox
-        run: |
-          pip install tox
+        run: pip install tox
 
       - name: Run tox
-        run: |
-          tox
+        run: tox
