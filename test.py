@@ -7,3 +7,4 @@ try:
     raise InvalidURLException()
 except Exception as e:
     logger.error(f"Cought an exception: {str(e)}")
+    
