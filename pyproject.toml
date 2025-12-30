@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68.0", "wheel"]
+requires = ["setuptools>=42.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 
@@ -16,3 +16,4 @@ ignore_missing_imports = true
 strict_optional = false
 disallow_untyped_defs = false
 check_untyped_defs = true
+ 
