@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.metrics import classification_report, confusion_matrix
 
 
 class Evaluator:

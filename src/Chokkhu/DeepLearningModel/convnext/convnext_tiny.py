@@ -2,9 +2,10 @@ import tensorflow as tf
 
 from Chokkhu.DeepLearningModel.base.base_classifier import BaseImageClassifier
 from Chokkhu.DeepLearningModel.eda.image_eda import ImageEDA
-from Chokkhu.DeepLearningModel.preprocessing.image_preprocess import ImagePreprocessor
-from Chokkhu.DeepLearningModel.training.trainer import Trainer
 from Chokkhu.DeepLearningModel.evaluation.evaluator import Evaluator
+from Chokkhu.DeepLearningModel.preprocessing.image_preprocess import \
+    ImagePreprocessor
+from Chokkhu.DeepLearningModel.training.trainer import Trainer
 from Chokkhu.DeepLearningModel.visualization.plots import Plotter
 
 
@@ -54,9 +55,7 @@ class ConvNextTiny:
             inputs = tf.keras.Input(shape=(*self.image_size, 3))
             x = tf.keras.applications.convnext.preprocess_input(inputs)
             x = base_model(x)
-            outputs = tf.keras.layers.Dense(
-                num_classes, activation="softmax"
-            )(x)
+            outputs = tf.keras.layers.Dense(num_classes, activation="softmax")(x)
 
             model = tf.keras.Model(inputs, outputs)
 
@@ -92,9 +91,7 @@ class ConvNextTiny:
             )
 
             self.model = self._build_model(eda_info["num_classes"])
-            self.history = self.trainer.fit(
-                self.model, train_ds, val_ds, self.epochs
-            )
+            self.history = self.trainer.fit(self.model, train_ds, val_ds, self.epochs)
 
         def Testing(self, testing_data: str):
             test_ds = self.preprocessor.create_dataset(

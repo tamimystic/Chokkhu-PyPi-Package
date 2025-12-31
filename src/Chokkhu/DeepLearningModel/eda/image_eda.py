@@ -4,7 +4,8 @@ import os
 class ImageEDA:
     def analyze(self, dataset_path: str) -> dict:
         class_names = [
-            d for d in os.listdir(dataset_path)
+            d
+            for d in os.listdir(dataset_path)
             if os.path.isdir(os.path.join(dataset_path, d))
         ]
 
@@ -14,9 +15,7 @@ class ImageEDA:
             images_per_class[cls] = len(os.listdir(cls_path))
 
         imbalance = (
-            max(images_per_class.values())
-            / min(images_per_class.values())
-            > 2
+            max(images_per_class.values()) / min(images_per_class.values()) > 2
             if len(images_per_class) > 1
             else False
         )
