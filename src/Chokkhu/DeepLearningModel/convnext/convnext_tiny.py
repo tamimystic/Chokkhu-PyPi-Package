@@ -3,8 +3,7 @@ import tensorflow as tf
 from Chokkhu.DeepLearningModel.base.base_classifier import BaseImageClassifier
 from Chokkhu.DeepLearningModel.eda.image_eda import ImageEDA
 from Chokkhu.DeepLearningModel.evaluation.evaluator import Evaluator
-from Chokkhu.DeepLearningModel.preprocessing.image_preprocess import \
-    ImagePreprocessor
+from Chokkhu.DeepLearningModel.preprocessing.image_preprocess import ImagePreprocessor
 from Chokkhu.DeepLearningModel.training.trainer import Trainer
 from Chokkhu.DeepLearningModel.visualization.plots import Plotter
 
