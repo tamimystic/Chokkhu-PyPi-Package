@@ -1,24 +1,27 @@
-# Chokkhu-PyPi-Package
+# Chokkhu
 
-This repository contains the source code and documentation for the Chokkhu image classification Python package, which is available on PyPi. The Chokkhu is a powerful tool for classification image based on given data in google colab and jupyter notebook.
+**Chokkhu** is a production-ready deep learning image classification framework built on top of **TensorFlow / Keras**.  
+It is designed for **students, researchers, and practitioners** who want a clean, extensible, and well-tested API for computer vision tasks such as **transfer learning–based image classification**.
 
-# How to run?
+The package follows **industry-grade Python packaging standards**, supports **CI/CD pipelines**, and is fully compatible with **Google Colab** and **Jupyter Notebook** environments.
 
-1. Create a virtual environment
+---
+
+## ✨ Features
+
+- Transfer learning–based image classification
+- Modern CNN architectures (starting with **ConvNeXt-Tiny**)
+- Image Exploratory Data Analysis (EDA) utilities
+- Clean, modular, and extensible project structure
+- Fully tested with unit and integration tests
+- Compatible with `tox`, `pytest`, `flake8`, `black`, `isort`, and `mypy`
+- PyPI-ready packaging with GitHub Actions CI support
+
+---
+
+## 📦 Installation
+
+### Install from PyPI
+
 ```bash
-    conda create -n Chokkhu python=3.8 -y
-```
-2. Activate this environment
-```bash
-    conda activate Chokkhu
-```
-3. Install required package
-```bash
-    pip install -r requirements_dev.txt
-```
-4. If do not build/install time generated metadata folder
-```bash
-    pip install -e .
-    python setup.py develop
-    python -m build
-```
+pip install chokkhu
