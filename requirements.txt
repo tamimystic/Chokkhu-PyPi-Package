@@ -5,3 +5,5 @@ Pillow>=9.0,<11.0
 matplotlib>=3.7,<4.0
 seaborn>=0.12,<1.0
 scikit-learn>=1.2,<2.0
+pandas>=2.0.0
+opencv-python>=4.8.0
