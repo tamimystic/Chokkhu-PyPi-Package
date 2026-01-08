@@ -26,7 +26,7 @@ class ImageEDA:
         """
         Orchestrates the EDA process: Collection, Analysis, and Visualization.
         """
-        print(f"--- Executing Professional EDA for: {self.dataset_path} ---")
+        print(f"--- Executing EDA for: {self.dataset_path} ---")
         self._collect_paths()
         if not self.class_paths:
             print("Error: No valid images found in the specified path.")
