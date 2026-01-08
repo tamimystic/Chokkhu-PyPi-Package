@@ -1,12 +1,13 @@
 import os
-import cv2
 import warnings
+from typing import Any, Dict, List, Tuple
+
+import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import matplotlib.pyplot as plt
 from PIL import Image
-from typing import Dict, Any, List, Tuple
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -193,4 +194,3 @@ class ImageEDA:
         print("\n" + "-" * 60 + "\nCOMPLETE DATASET EDA SUMMARY\n")
         print(pd.DataFrame(summary).to_string(index=False))
         print("-" * 60 + "\n")
-        
