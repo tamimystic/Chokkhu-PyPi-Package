@@ -38,7 +38,7 @@ class ImageEDA:
         Identifies class folders containing valid image files.
         """
         for root, _, files in os.walk(self.dataset_path):
-            if any(f.lower().endswith(('.png', '.jpg', '.jpeg')) for f in files):
+            if any(f.lower().endswith((".png", ".jpg", ".jpeg")) for f in files):
                 self.class_paths.append(root)
 
     def _blur_score(self, image: np.ndarray) -> float:
@@ -47,16 +47,17 @@ class ImageEDA:
         """
         gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
         score: float = cv2.Laplacian(gray, cv2.CV_64F).var()
-        return score
+        return float(score)
 
     def _analyze_data(self) -> Dict[str, Any]:
         """
         Extracts metrics like image size, aspect ratio, blur score, and RGB histogram.
         """
-        exts = ('.png', '.jpg', '.jpeg')
-        # Class distribution count
+        exts = (".png", ".jpg", ".jpeg")
         counts = {
-            os.path.basename(p): len([f for f in os.listdir(p) if f.lower().endswith(exts)])
+            os.path.basename(p): len(
+                [f for f in os.listdir(p) if f.lower().endswith(exts)]
+            )
             for p in self.class_paths
         }
         df_counts = pd.DataFrame(list(counts.items()), columns=["Class", "Image_Count"])
@@ -84,7 +85,9 @@ class ImageEDA:
                 processed_count += 1
 
         df_sizes = pd.DataFrame(sizes, columns=["Width", "Height", "Aspect_Ratio"])
-        avg_hist = total_rgb_hist / processed_count if processed_count > 0 else total_rgb_hist
+        avg_hist = (
+            total_rgb_hist / processed_count if processed_count > 0 else total_rgb_hist
+        )
 
         return {
             "df_counts": df_counts,
@@ -92,7 +95,7 @@ class ImageEDA:
             "total_images": processed_count,
             "avg_blur": np.mean(blur_scores) if blur_scores else 0.0,
             "avg_rgb_hist": avg_hist,
-            "total_classes": len(self.class_paths)
+            "total_classes": len(self.class_paths),
         }
 
     def _visual_reports(self) -> None:
@@ -104,12 +107,17 @@ class ImageEDA:
 
         # 1. Distribution Chart
         plt.figure(figsize=(10, 5))
-        ax = sns.barplot(data=res["df_counts"], x="Class", y="Image_Count", palette="viridis")
+        ax = sns.barplot(
+            data=res["df_counts"], x="Class", y="Image_Count", palette="viridis"
+        )
         for p in ax.patches:
             ax.annotate(
-                f'{int(p.get_height())}',
-                (p.get_x() + p.get_width() / 2., p.get_height()),
-                ha='center', va='center', xytext=(0, 8), textcoords='offset points'
+                f"{int(p.get_height())}",
+                (p.get_x() + p.get_width() / 2.0, p.get_height()),
+                ha="center",
+                va="center",
+                xytext=(0, 8),
+                textcoords="offset points",
             )
         plt.title("Class-wise Image Distribution")
         plt.xticks(rotation=45)
@@ -118,7 +126,11 @@ class ImageEDA:
         # 2. Sample Grid
         plt.figure(figsize=(12, 8))
         for i, path in enumerate(self.class_paths[:9]):
-            files = [f for f in os.listdir(path) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+            files = [
+                f
+                for f in os.listdir(path)
+                if f.lower().endswith((".png", ".jpg", ".jpeg"))
+            ]
             if files:
                 img = Image.open(os.path.join(path, files[0]))
                 plt.subplot(3, 3, i + 1)
@@ -129,7 +141,7 @@ class ImageEDA:
         plt.tight_layout()
         plt.show()
 
-        # 3. Size Analysis (Boxplot + Aspect Ratio Hist)
+        # 3. Size Analysis
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
         sns.boxplot(data=res["sizes_df"][["Width", "Height"]], palette="Set2", ax=ax1)
         ax1.set_title("Image Dimensions Outliers")
@@ -137,15 +149,22 @@ class ImageEDA:
         ax2.set_title("Aspect Ratio Distribution")
         plt.show()
 
-        print("\n" + "-" * 45 + "\nIMAGE SIZE DESCRIPTIVE STATISTICS\n" + " " * 45)
+        print("\n" + "-" * 45 + "\nIMAGE SIZE DESCRIPTIVE STATISTICS\n")
         print(res["sizes_df"].describe())
         print("-" * 45)
 
         # 4. RGB Intensity Distribution
         plt.figure(figsize=(10, 6))
-        for i, col in enumerate(['red', 'green', 'blue']):
-            plt.plot(res["avg_rgb_hist"][:, i], color=col, label=f"{col.upper()} Channel", linewidth=1.5)
-            plt.fill_between(range(256), res["avg_rgb_hist"][:, i], color=col, alpha=0.1)
+        for i, col in enumerate(["red", "green", "blue"]):
+            plt.plot(
+                res["avg_rgb_hist"][:, i],
+                color=col,
+                label=f"{col.upper()} Channel",
+                linewidth=1.5,
+            )
+            plt.fill_between(
+                range(256), res["avg_rgb_hist"][:, i], color=col, alpha=0.1
+            )
         plt.title("Global Average RGB Intensity Distribution")
         plt.legend()
         plt.show()
@@ -155,8 +174,12 @@ class ImageEDA:
         min_c = res["df_counts"].loc[res["df_counts"]["Image_Count"].idxmin()]
         summary = {
             "EDA Aspect": [
-                "Total Classes", "Total Images", "Majority Class",
-                "Minority Class", "Avg Aspect Ratio", "Avg Blur Score"
+                "Total Classes",
+                "Total Images",
+                "Majority Class",
+                "Minority Class",
+                "Avg Aspect Ratio",
+                "Avg Blur Score",
             ],
             "Observation": [
                 res["total_classes"],
@@ -164,9 +187,10 @@ class ImageEDA:
                 f"{max_c['Class']} ({max_c['Image_Count']})",
                 f"{min_c['Class']} ({min_c['Image_Count']})",
                 round(float(res["sizes_df"]["Aspect_Ratio"].mean()), 2),
-                round(float(res["avg_blur"]), 2)
-            ]
+                round(float(res["avg_blur"]), 2),
+            ],
         }
-        print("\n" + "-" * 60 + "\nCOMPLETE DATASET EDA SUMMARY\n" + " " * 60)
+        print("\n" + "-" * 60 + "\nCOMPLETE DATASET EDA SUMMARY\n")
         print(pd.DataFrame(summary).to_string(index=False))
         print("-" * 60 + "\n")
+        
