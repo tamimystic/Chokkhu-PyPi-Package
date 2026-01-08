@@ -4,8 +4,11 @@ A complete dataset preprocessing and EDA pipeline
 for pretrained CNN-based transfer learning.
 
 API:
-    train, val, test = ImagePreProcessor(datapath="path/to/dataset")
+    processor = ImagePreProcessor(datapath="path/to/dataset")
+    train, val, test = processor.get_data()
 """
+
+from __future__ import annotations
 
 import os
 import cv2
@@ -14,29 +17,34 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from collections import Counter
+from typing import List, Tuple
 from sklearn.model_selection import train_test_split
 
 
-def _set_seed(seed=42):
-    """
-    Set global random seed for reproducible EDA.
-    """
+def _set_seed(seed: int = 42) -> None:
     random.seed(seed)
     np.random.seed(seed)
     os.environ["PYTHONHASHSEED"] = str(seed)
 
 
 class ImagePreProcessor:
-    """
-    ImagePreProcessor loads images from a dataset path, performs
-    preprocessing, augmentation-based class balancing, stratified
-    train/validation/test split, and comprehensive EDA before and
-    after preprocessing.
-    """
+    datapath: str
+    img_size: Tuple[int, int]
 
-    def __new__(cls, datapath):
+    raw_images: List[np.ndarray]
+    labels: List[int]
+    class_names: List[str]
+    proc_images: List[np.ndarray]
+
+    X_train: List[np.ndarray]
+    X_val: List[np.ndarray]
+    X_test: List[np.ndarray]
+    y_train: List[int]
+    y_val: List[int]
+    y_test: List[int]
+
+    def __init__(self, datapath: str) -> None:
         _set_seed(42)
-        self = super().__new__(cls)
 
         self.datapath = datapath
         self.img_size = (224, 224)
@@ -47,48 +55,57 @@ class ImagePreProcessor:
 
         self.proc_images = self._preprocess(self.raw_images)
 
-        X_train, X_tmp, y_train, y_tmp = train_test_split(
-            self.proc_images,
-            self.labels,
-            test_size=0.30,
-            stratify=self.labels,
-            random_state=42
+        (
+            self.X_train,
+            self.X_val,
+            self.X_test,
+            self.y_train,
+            self.y_val,
+            self.y_test,
+        ) = self._split(self.proc_images, self.labels)
+
+        self._plot_split_distribution(self.y_train, self.y_val, self.y_test)
+
+        y_train_before = self.y_train.copy()
+
+        self.X_train, self.y_train = self._balance_via_augmentation(
+            self.X_train, self.y_train
         )
 
-        X_val, X_test, y_val, y_test = train_test_split(
-            X_tmp,
-            y_tmp,
-            test_size=0.50,
-            stratify=y_tmp,
-            random_state=42
+        self._eda_after(
+            y_train_before,
+            self.y_train,
+            self.y_val,
+            self.y_test,
         )
 
-        y_train_before = y_train.copy()
+    def get_data(
+        self,
+    ) -> Tuple[
+        Tuple[List[np.ndarray], List[int]],
+        Tuple[List[np.ndarray], List[int]],
+        Tuple[List[np.ndarray], List[int]],
+    ]:
+        return (
+            (self.X_train, self.y_train),
+            (self.X_val, self.y_val),
+            (self.X_test, self.y_test),
+        )
 
-        X_train, y_train = self._balance_via_augmentation(X_train, y_train)
+    # DATA LOADING
 
-        self._eda_after(y_train_before, y_train, y_val, y_test)
-
-        return (X_train, y_train), (X_val, y_val), (X_test, y_test)
-
-    def _load_dataset(self):
-        """
-        Load images from flat or Training/Testing dataset structures.
-        """
-        images, labels = [], []
+    def _load_dataset(self) -> Tuple[List[np.ndarray], List[int], List[str]]:
+        images: List[np.ndarray] = []
+        labels: List[int] = []
 
         root = self.datapath
-        subdirs = [
-            d for d in os.listdir(root)
-            if os.path.isdir(os.path.join(root, d))
-        ]
+        subdirs = [d for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))]
 
         if "Training" in subdirs:
             root = os.path.join(root, "Training")
 
         class_names = sorted(
-            d for d in os.listdir(root)
-            if os.path.isdir(os.path.join(root, d))
+            d for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))
         )
 
         if not class_names:
@@ -97,66 +114,118 @@ class ImagePreProcessor:
         for idx, cls in enumerate(class_names):
             cls_path = os.path.join(root, cls)
             for f in os.listdir(cls_path):
-                path = os.path.join(cls_path, f)
-                img = cv2.imread(path)
+                img = cv2.imread(os.path.join(cls_path, f))
                 if img is None:
                     continue
-                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                images.append(img)
+                images.append(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
                 labels.append(idx)
 
-        if len(images) == 0:
+        if not images:
             raise ValueError("No valid images found in dataset")
 
         return images, labels, class_names
 
-    def _preprocess(self, images):
-        """
-        Resize images and normalize pixel values to [0, 1].
-        """
-        processed = []
+    # PREPROCESS
+
+    def _preprocess(self, images: List[np.ndarray]) -> List[np.ndarray]:
+        processed: List[np.ndarray] = []
         for img in images:
             img = cv2.resize(img, self.img_size)
             img = img.astype(np.float32) / 255.0
             processed.append(img)
         return processed
 
-    def _augment(self, img):
-        """
-        Apply light data augmentation suitable for pretrained CNNs.
-        """
+    # SPLIT
+    def _split(
+        self, X: List[np.ndarray], y: List[int]
+    ) -> Tuple[
+        List[np.ndarray],
+        List[np.ndarray],
+        List[np.ndarray],
+        List[int],
+        List[int],
+        List[int],
+    ]:
+        X_train, X_tmp, y_train, y_tmp = train_test_split(
+            X, y, test_size=0.30, stratify=y, random_state=42
+        )
+
+        X_val, X_test, y_val, y_test = train_test_split(
+            X_tmp, y_tmp, test_size=0.50, stratify=y_tmp, random_state=42
+        )
+
+        return X_train, X_val, X_test, y_train, y_val, y_test
+
+    def _plot_split_distribution(
+        self, y_train: List[int], y_val: List[int], y_test: List[int]
+    ) -> None:
+        x = np.arange(len(self.class_names))
+        width = 0.25
+
+        plt.figure(figsize=(12, 4))
+
+        for name, labels, offset in [
+            ("Train", y_train, -width),
+            ("Validation", y_val, 0.0),
+            ("Test", y_test, width),
+        ]:
+            counter = Counter(labels)
+            bars = plt.bar(
+                x + offset,
+                [counter[i] for i in range(len(self.class_names))],
+                width,
+                label=name,
+            )
+            for bar in bars:
+                h = bar.get_height()
+                plt.text(
+                    bar.get_x() + bar.get_width() / 2,
+                    h,
+                    str(int(h)),
+                    ha="center",
+                    va="bottom",
+                )
+
+        plt.xticks(x, self.class_names, rotation=30)
+        plt.title("Train / Validation / Test Split Distribution (Stratified)")
+        plt.legend()
+        plt.tight_layout()
+        plt.show()
+
+    # AUGMENTATION & BALANCING
+
+    def _augment(self, img: np.ndarray) -> np.ndarray:
         img = img.copy()
         if random.random() < 0.5:
             img = np.fliplr(img)
         if random.random() < 0.5:
             angle = random.uniform(-15, 15)
             h, w, _ = img.shape
-            M = cv2.getRotationMatrix2D((w // 2, h // 2), angle, 1)
+            M = cv2.getRotationMatrix2D((w // 2, h // 2), angle, 1.0)
             img = cv2.warpAffine(img, M, (w, h))
         return img
 
-    def _balance_via_augmentation(self, X, y):
-        """
-        Balance classes using augmentation on the training set only.
-        """
-        counts = Counter(y)
+    def _balance_via_augmentation(
+        self, X: List[np.ndarray], y: List[int]
+    ) -> Tuple[List[np.ndarray], List[int]]:
+        counts: Counter[int] = Counter(y)
         max_count = max(counts.values())
 
-        new_X, new_y = [], []
+        Xb, yb = list(X), list(y)
 
         for cls, cnt in counts.items():
             cls_imgs = [X[i] for i in range(len(X)) if y[i] == cls]
-            need = max_count - cnt
-            for _ in range(need):
-                new_X.append(self._augment(random.choice(cls_imgs)))
-                new_y.append(cls)
+            for _ in range(max_count - cnt):
+                Xb.append(self._augment(random.choice(cls_imgs)))
+                yb.append(cls)
 
-        return X + new_X, y + new_y
+        return Xb, yb
 
-    def _geometry_stats(self, images):
-        """
-        Compute width, height, and aspect ratio.
-        """
+    # EDA HELPERS
+
+    def _geometry_stats(
+        self, images: List[np.ndarray]
+    ) -> Tuple[List[int], List[int], List[float]]:
         widths, heights, ratios = [], [], []
         for img in images:
             h, w = img.shape[:2]
@@ -165,24 +234,7 @@ class ImagePreProcessor:
             ratios.append(w / h)
         return widths, heights, ratios
 
-    def _rgb_distribution(self, images, title):
-        """
-        Plot global RGB intensity distribution.
-        """
-        pixels = np.concatenate([img.reshape(-1, 3) for img in images], axis=0)
-        plt.figure(figsize=(8, 4))
-        plt.hist(pixels[:, 0], bins=50, alpha=0.5, label="R")
-        plt.hist(pixels[:, 1], bins=50, alpha=0.5, label="G")
-        plt.hist(pixels[:, 2], bins=50, alpha=0.5, label="B")
-        plt.title(title)
-        plt.legend()
-        plt.tight_layout()
-        plt.show()
-
-    def _geometry_outliers(self, images, title):
-        """
-        Plot width and height outliers using boxplots.
-        """
+    def _geometry_outliers(self, images: List[np.ndarray], title: str) -> None:
         widths, heights, _ = self._geometry_stats(images)
         plt.figure(figsize=(10, 4))
         plt.subplot(1, 2, 1)
@@ -194,10 +246,7 @@ class ImagePreProcessor:
         plt.tight_layout()
         plt.show()
 
-    def _aspect_ratio_distribution(self, images, title):
-        """
-        Plot aspect ratio distribution.
-        """
+    def _aspect_ratio_distribution(self, images: List[np.ndarray], title: str) -> None:
         _, _, ratios = self._geometry_stats(images)
         plt.figure(figsize=(6, 4))
         plt.hist(ratios, bins=40)
@@ -205,22 +254,29 @@ class ImagePreProcessor:
         plt.tight_layout()
         plt.show()
 
-    def _blur_score(self, img):
-        """
-        Compute blur score using Laplacian variance.
-        """
+    def _rgb_distribution(self, images: List[np.ndarray], title: str) -> None:
+        pixels = np.concatenate([img.reshape(-1, 3) for img in images], axis=0)
+        plt.figure(figsize=(8, 4))
+        plt.hist(pixels[:, 0], bins=50, alpha=0.5, label="R")
+        plt.hist(pixels[:, 1], bins=50, alpha=0.5, label="G")
+        plt.hist(pixels[:, 2], bins=50, alpha=0.5, label="B")
+        plt.title(title)
+        plt.legend()
+        plt.tight_layout()
+        plt.show()
+
+    def _blur_score(self, img: np.ndarray) -> float:
         gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
         return cv2.Laplacian(gray, cv2.CV_64F).var()
 
-    def _eda_before(self):
-        """
-        Perform EDA on raw images before preprocessing.
-        """
-        counts = Counter(self.labels)
-        values = [counts[i] for i in range(len(self.class_names))]
+    # EDA BEFORE
 
-        plt.figure(figsize=(8, 4))
-        bars = plt.bar(self.class_names, values)
+    def _eda_before(self) -> None:
+        counts = Counter(self.labels)
+        bars = plt.bar(
+            self.class_names,
+            [counts[i] for i in range(len(self.class_names))],
+        )
         for bar in bars:
             h = bar.get_height()
             plt.text(bar.get_x() + bar.get_width() / 2, h, str(h),
@@ -230,121 +286,111 @@ class ImagePreProcessor:
         plt.show()
 
         self._geometry_outliers(self.raw_images, "Before")
-        self._aspect_ratio_distribution(self.raw_images, "Before Aspect Ratio Distribution")
-        self._rgb_distribution(self.raw_images, "Before Global RGB Intensity Distribution")
+        self._aspect_ratio_distribution(
+            self.raw_images, "Before Aspect Ratio Distribution"
+        )
+        self._rgb_distribution(
+            self.raw_images, "Before Global RGB Intensity Distribution"
+        )
 
         w, h, r = self._geometry_stats(self.raw_images)
         print("\nIMAGE SIZE DESCRIPTIVE STATISTICS (Before)")
-        print(pd.DataFrame({
-            "Width": w,
-            "Height": h,
-            "Aspect_Ratio": r
-        }).describe())
+        print(pd.DataFrame({"Width": w, "Height": h, "Aspect_Ratio": r}).describe())
 
         blur_scores = [self._blur_score(img) for img in self.raw_images]
         self._summary_table(self.raw_images, self.labels, r, blur_scores)
 
-    def _eda_after(self, y_train_before, y_train, y_val, y_test):
-        """
-        Perform EDA after preprocessing, balancing, and splitting.
-        """
+    # EDA AFTER
+
+    def _eda_after(
+        self,
+        y_train_before: List[int],
+        y_train: List[int],
+        y_val: List[int],
+        y_test: List[int],
+    ) -> None:
         before = Counter(y_train_before)
         after = Counter(y_train)
 
-        labels = self.class_names
-        x = np.arange(len(labels))
+        x = np.arange(len(self.class_names))
         width = 0.35
 
         plt.figure(figsize=(10, 4))
-        b1 = plt.bar(x - width / 2,
-                     [before[i] for i in range(len(labels))],
-                     width, label="Before Balancing")
-        b2 = plt.bar(x + width / 2,
-                     [after[i] for i in range(len(labels))],
-                     width, label="After Balancing")
+        bars1 = plt.bar(
+            x - width / 2,
+            [before[i] for i in range(len(self.class_names))],
+            width,
+            label="Before Balancing",
+        )
+        bars2 = plt.bar(
+            x + width / 2,
+            [after[i] for i in range(len(self.class_names))],
+            width,
+            label="After Balancing",
+        )
 
-        for bars in (b1, b2):
+        for bars in (bars1, bars2):
             for bar in bars:
                 h = bar.get_height()
                 plt.text(bar.get_x() + bar.get_width() / 2, h, str(h),
                          ha="center", va="bottom")
 
-        plt.xticks(x, labels, rotation=30)
+        plt.xticks(x, self.class_names, rotation=30)
+        plt.legend()
         plt.title("Augmentation-Based Class Balancing (Train)")
-        plt.legend()
-        plt.tight_layout()
-        plt.show()
-
-        train_c = Counter(y_train)
-        val_c = Counter(y_val)
-        test_c = Counter(y_test)
-
-        plt.figure(figsize=(12, 4))
-        for name, counter, offset in [
-            ("Train", train_c, -0.25),
-            ("Validation", val_c, 0.0),
-            ("Test", test_c, 0.25),
-        ]:
-            bars = plt.bar(
-                x + offset,
-                [counter[i] for i in range(len(labels))],
-                width=0.25,
-                label=name
-            )
-            for bar in bars:
-                h = bar.get_height()
-                plt.text(bar.get_x() + bar.get_width() / 2, h, str(h),
-                         ha="center", va="bottom")
-
-        plt.xticks(x, labels, rotation=30)
-        plt.title("Train / Validation / Test Split Distribution")
-        plt.legend()
         plt.tight_layout()
         plt.show()
 
         imgs_uint8 = [(img * 255).astype(np.uint8) for img in self.proc_images]
 
         self._geometry_outliers(imgs_uint8, "After")
-        self._aspect_ratio_distribution(imgs_uint8, "After Aspect Ratio Distribution")
-        self._rgb_distribution(imgs_uint8, "After Global RGB Intensity Distribution")
+        self._aspect_ratio_distribution(
+            imgs_uint8, "After Aspect Ratio Distribution"
+        )
+        self._rgb_distribution(
+            imgs_uint8, "After Global RGB Intensity Distribution"
+        )
 
         w, h, r = self._geometry_stats(imgs_uint8)
         print("\nIMAGE SIZE DESCRIPTIVE STATISTICS (After)")
-        print(pd.DataFrame({
-            "Width": w,
-            "Height": h,
-            "Aspect_Ratio": r
-        }).describe())
+        print(pd.DataFrame({"Width": w, "Height": h, "Aspect_Ratio": r}).describe())
 
         blur_scores = [self._blur_score(img) for img in imgs_uint8]
         self._summary_table(imgs_uint8, self.labels, r, blur_scores)
 
-    def _summary_table(self, images, labels, ratios, blur_scores):
-        """
-        Print a high-level dataset summary table.
-        """
-        counts = Counter(labels)
+    # SUMMARY TABLE
+
+    def _summary_table(
+        self,
+        images: List[np.ndarray],
+        labels: List[int],
+        ratios: List[float],
+        blur_scores: List[float],
+    ) -> None:
+        counts: Counter[int] = Counter(labels)
         majority = max(counts, key=counts.get)
         minority = min(counts, key=counts.get)
 
-        summary = pd.DataFrame({
-            "EDA Aspect": [
-                "Total Classes",
-                "Total Images",
-                "Majority Class",
-                "Minority Class",
-                "Avg Aspect Ratio",
-                "Avg Blur Score",
-            ],
-            "Observation": [
-                len(self.class_names),
-                len(images),
-                f"{self.class_names[majority]} ({counts[majority]})",
-                f"{self.class_names[minority]} ({counts[minority]})",
-                round(np.mean(ratios), 2),
-                round(np.mean(blur_scores), 2),
-            ]
-        })
+        summary = pd.DataFrame(
+            {
+                "EDA Aspect": [
+                    "Total Classes",
+                    "Total Images",
+                    "Majority Class",
+                    "Minority Class",
+                    "Avg Aspect Ratio",
+                    "Avg Blur Score",
+                ],
+                "Observation": [
+                    len(self.class_names),
+                    len(images),
+                    f"{self.class_names[majority]} ({counts[majority]})",
+                    f"{self.class_names[minority]} ({counts[minority]})",
+                    round(float(np.mean(ratios)), 2),
+                    round(float(np.mean(blur_scores)), 2),
+                ],
+            }
+        )
 
         print("\nDATASET SUMMARY")
         print(summary)
