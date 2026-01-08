@@ -136,9 +136,7 @@ class ImagePreProcessor:
         return processed
 
     # SPLIT
-    def _split(
-        self, X: List[np.ndarray], y: List[int]
-    ) -> Tuple[
+    def _split(self, X: List[np.ndarray], y: List[int]) -> Tuple[
         List[np.ndarray],
         List[np.ndarray],
         List[np.ndarray],
@@ -279,8 +277,9 @@ class ImagePreProcessor:
         )
         for bar in bars:
             h = bar.get_height()
-            plt.text(bar.get_x() + bar.get_width() / 2, h, str(h),
-                     ha="center", va="bottom")
+            plt.text(
+                bar.get_x() + bar.get_width() / 2, h, str(h), ha="center", va="bottom"
+            )
         plt.title("Class-wise Image Distribution (Before)")
         plt.tight_layout()
         plt.show()
@@ -332,8 +331,13 @@ class ImagePreProcessor:
         for bars in (bars1, bars2):
             for bar in bars:
                 h = bar.get_height()
-                plt.text(bar.get_x() + bar.get_width() / 2, h, str(h),
-                         ha="center", va="bottom")
+                plt.text(
+                    bar.get_x() + bar.get_width() / 2,
+                    h,
+                    str(h),
+                    ha="center",
+                    va="bottom",
+                )
 
         plt.xticks(x, self.class_names, rotation=30)
         plt.legend()
@@ -344,12 +348,8 @@ class ImagePreProcessor:
         imgs_uint8 = [(img * 255).astype(np.uint8) for img in self.proc_images]
 
         self._geometry_outliers(imgs_uint8, "After")
-        self._aspect_ratio_distribution(
-            imgs_uint8, "After Aspect Ratio Distribution"
-        )
-        self._rgb_distribution(
-            imgs_uint8, "After Global RGB Intensity Distribution"
-        )
+        self._aspect_ratio_distribution(imgs_uint8, "After Aspect Ratio Distribution")
+        self._rgb_distribution(imgs_uint8, "After Global RGB Intensity Distribution")
 
         w, h, r = self._geometry_stats(imgs_uint8)
         print("\nIMAGE SIZE DESCRIPTIVE STATISTICS (After)")
