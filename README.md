@@ -24,8 +24,8 @@ Complete usage example showing the full workflow in one place:
 
 ```python
 
-from Chokkhu.DeepLearningModel.eda.image_eda import ImageEDA
-from Chokkhu.DeepLearningModel.preprocessing.image_preprocess import ImagePreProcessor
+from Chokkhu.DeepLearningModel.EDA import ImageEDA
+from Chokkhu.DeepLearningModel.PreProcessing import ImagePreProcessor
 
 # Dataset EDA
 eda = ImageEDA(dataset_path="your_dataset_path")
@@ -37,7 +37,7 @@ processor = ImagePreProcessor(datapath="your_dataset_path")
 
 
 
-Now you can train your model like this
+After excecuting this, You can train your model like this.
 
 
 
