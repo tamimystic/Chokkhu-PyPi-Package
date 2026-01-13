@@ -9,7 +9,7 @@ works seamlessly in Google Colab and Jupyter Notebook environments.
 
 INSTALLATION (IMPORTANT – FIRST STEP)
 
->>> pip install chokkhu <<<
+>>> pip install Chokkhu <<<
 
 TensorFlow is installed automatically as a runtime dependency.
 
@@ -24,8 +24,8 @@ Complete usage example showing the full workflow in one place:
 
 ```python
 
-from Chokkhu.DeepLearningModel.EDA import ImageEDA
-from Chokkhu.DeepLearningModel.PreProcessing import ImagePreProcessor
+from Chokkhu import ImageEDA, ImagePreProcessor
+
 
 # Dataset EDA
 eda = ImageEDA(dataset_path="your_dataset_path")
