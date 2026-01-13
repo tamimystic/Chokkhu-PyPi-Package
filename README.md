@@ -1,27 +1,37 @@
 # Chokkhu
 
-**Chokkhu** is a production-ready deep learning image classification framework built on top of **TensorFlow / Keras**.  
-It is designed for **students, researchers, and practitioners** who want a clean, extensible, and well-tested API for computer vision tasks such as **transfer learning–based image classification**.
+Chokkhu is a deep learning image dataset EDA and preprocessing toolkit designed to
+prepare train-ready image data for TensorFlow / Keras–based image classification.
+It helps users analyze datasets, preprocess images, handle class imbalance, and
+train deep learning models using a clean and reproducible pipeline. The package
+follows industry-grade Python packaging standards, supports CI/CD pipelines, and
+works seamlessly in Google Colab and Jupyter Notebook environments.
 
-The package follows **industry-grade Python packaging standards**, supports **CI/CD pipelines**, and is fully compatible with **Google Colab** and **Jupyter Notebook** environments.
+INSTALLATION (IMPORTANT – FIRST STEP)
 
----
+>>> pip install chokkhu <<<
 
-## ✨ Features
+TensorFlow is installed automatically as a runtime dependency.
 
-- Transfer learning–based image classification
-- Modern CNN architectures (starting with **ConvNeXt-Tiny**)
-- Image Exploratory Data Analysis (EDA) utilities
-- Clean, modular, and extensible project structure
-- Fully tested with unit and integration tests
-- Compatible with `tox`, `pytest`, `flake8`, `black`, `isort`, and `mypy`
-- PyPI-ready packaging with GitHub Actions CI support
+Chokkhu’s main responsibility is data preparation. It performs image exploratory
+data analysis (EDA), class-wise distribution visualization, image size, aspect
+ratio, RGB intensity and blur analysis, standard preprocessing (resize to 224×224
+and normalization), stratified train/validation/test splitting, and automatic
+class balancing using data augmentation. After this step, the dataset is fully
+ready to be used for training any deep learning model.
 
----
+Complete usage example showing the full workflow in one place:
 
-## 📦 Installation
+```python
+from Chokkhu.DeepLearningModel.eda.image_eda import ImageEDA
+from Chokkhu.DeepLearningModel.preprocessing.image_preprocess import ImagePreProcessor
 
-### Install from PyPI
+# Dataset EDA
+eda = ImageEDA(dataset_path="dataset")
 
-```bash
-pip install chokkhu
+# Dataset preprocessing
+processor = ImagePreProcessor(datapath="dataset")
+(train_X, train_y), (val_X, val_y), (test_X, test_y) = processor.get_data()
+
+
+Now you can use it in your model training
