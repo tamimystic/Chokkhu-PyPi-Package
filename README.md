@@ -23,15 +23,102 @@ ready to be used for training any deep learning model.
 Complete usage example showing the full workflow in one place:
 
 ```python
+
 from Chokkhu.DeepLearningModel.eda.image_eda import ImageEDA
 from Chokkhu.DeepLearningModel.preprocessing.image_preprocess import ImagePreProcessor
 
 # Dataset EDA
-eda = ImageEDA(dataset_path="dataset")
+eda = ImageEDA(dataset_path="your_dataset_path")
 
 # Dataset preprocessing
-processor = ImagePreProcessor(datapath="dataset")
+processor = ImagePreProcessor(datapath="your_dataset_path")
 (train_X, train_y), (val_X, val_y), (test_X, test_y) = processor.get_data()
 
 
-Now you can use it in your model training
+
+
+Now you can train your model like this
+
+
+
+
+
+
+
+import tensorflow as tf
+# Example 1: Custom CNN (from scratch)
+custom_model = tf.keras.Sequential([
+    tf.keras.layers.Conv2D(32, 3, activation="relu", input_shape=(224,224,3)),
+    tf.keras.layers.MaxPooling2D(),
+    tf.keras.layers.Conv2D(64, 3, activation="relu"),
+    tf.keras.layers.MaxPooling2D(),
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(128, activation="relu"),
+    tf.keras.layers.Dense(num_classes, activation="softmax")
+])
+
+custom_model.compile(
+    optimizer="adam",
+    loss="sparse_categorical_crossentropy",
+    metrics=["accuracy"]
+)
+
+custom_model.fit(
+    train_X,
+    train_y,
+    validation_data=(val_X, val_y),
+    epochs=10
+)
+
+
+
+
+# Example 2: Transfer Learning with ConvNeXt-Tiny (frozen backbone)
+import tensorflow as tf
+base_model = tf.keras.applications.ConvNeXtTiny(
+    weights="imagenet",
+    include_top=False,
+    input_shape=(224,224,3)
+)
+
+base_model.trainable = False
+
+transfer_model = tf.keras.Sequential([
+    base_model,
+    tf.keras.layers.GlobalAveragePooling2D(),
+    tf.keras.layers.Dense(256, activation="relu"),
+    tf.keras.layers.Dense(num_classes, activation="softmax")
+])
+
+transfer_model.compile(
+    optimizer="adam",
+    loss="sparse_categorical_crossentropy",
+    metrics=["accuracy"]
+)
+
+transfer_model.fit(
+    train_X,
+    train_y,
+    validation_data=(val_X, val_y),
+    epochs=5
+)
+
+
+
+
+# Example 3: Fine-tuning ConvNeXt-Tiny (unfrozen backbone)
+import tensorflow as tf
+base_model.trainable = True
+
+transfer_model.compile(
+    optimizer=tf.keras.optimizers.Adam(1e-5),
+    loss="sparse_categorical_crossentropy",
+    metrics=["accuracy"]
+)
+
+transfer_model.fit(
+    train_X,
+    train_y,
+    validation_data=(val_X, val_y),
+    epochs=5
+)
