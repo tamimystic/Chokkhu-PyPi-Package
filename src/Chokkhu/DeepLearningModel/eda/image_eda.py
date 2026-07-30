@@ -14,7 +14,12 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 
 
 class ImageEDA:
-    def __init__(self, dataset_path: str, save_reports: bool = True, save_dir: str = "chokkhu_outputs/EDA_Reports"):
+    def __init__(
+        self,
+        dataset_path: str,
+        save_reports: bool = True,
+        save_dir: str = "chokkhu_outputs/EDA_Reports",
+    ):
         """
         Initializes the ImageEDA class and triggers the analysis pipeline.
         """
@@ -23,10 +28,10 @@ class ImageEDA:
         self.save_dir: str = save_dir
         self.results: Dict[str, Any] = {}
         self.class_paths: List[str] = []
-        
+
         if self.save_reports:
             os.makedirs(self.save_dir, exist_ok=True)
-            
+
         self._perform_eda()
 
     def _perform_eda(self) -> None:
@@ -89,7 +94,7 @@ class ImageEDA:
 
                 for i in range(3):
                     hist = cv2.calcHist([img_rgb], [i], None, [256], [0, 256])
-                    total_rgb_hist[:, i] += hist.flatten()
+                    total_rgb_hist[:, i] += hist.flatten()  # type: ignore
                 processed_count += 1
 
         df_sizes = pd.DataFrame(sizes, columns=["Width", "Height", "Aspect_Ratio"])
@@ -131,8 +136,12 @@ class ImageEDA:
         plt.xticks(rotation=45)
         plt.tight_layout()
         if self.save_reports:
-            plt.savefig(os.path.join(self.save_dir, "1_class_distribution.png"), dpi=300)
-            res["df_counts"].to_csv(os.path.join(self.save_dir, "class_counts.csv"), index=False)
+            plt.savefig(
+                os.path.join(self.save_dir, "1_class_distribution.png"), dpi=300
+            )
+            res["df_counts"].to_csv(
+                os.path.join(self.save_dir, "class_counts.csv"), index=False
+            )
         plt.show(block=False)
         plt.pause(1)
         plt.close()
@@ -168,7 +177,9 @@ class ImageEDA:
         plt.tight_layout()
         if self.save_reports:
             plt.savefig(os.path.join(self.save_dir, "3_size_analysis.png"), dpi=300)
-            res["sizes_df"].to_csv(os.path.join(self.save_dir, "image_sizes.csv"), index=False)
+            res["sizes_df"].to_csv(
+                os.path.join(self.save_dir, "image_sizes.csv"), index=False
+            )
         plt.show(block=False)
         plt.pause(1)
         plt.close()
@@ -223,8 +234,11 @@ class ImageEDA:
         print("\n" + "-" * 60 + "\nCOMPLETE DATASET EDA SUMMARY\n")
         print(summary_df.to_string(index=False))
         print("-" * 60 + "\n")
-        
-        if self.save_reports:
-            summary_df.to_csv(os.path.join(self.save_dir, "eda_summary.csv"), index=False)
-            print(f"\n[INFO] All reports and visualizations have been saved in: {self.save_dir}")
 
+        if self.save_reports:
+            summary_df.to_csv(
+                os.path.join(self.save_dir, "eda_summary.csv"), index=False
+            )
+            print(
+                f"\n[INFO] All reports and visualizations have been saved in: {self.save_dir}"
+            )
