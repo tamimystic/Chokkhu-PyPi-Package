@@ -8,18 +8,25 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from PIL import Image
+from tqdm import tqdm
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 
 class ImageEDA:
-    def __init__(self, dataset_path: str):
+    def __init__(self, dataset_path: str, save_reports: bool = True, save_dir: str = "chokkhu_outputs/EDA_Reports"):
         """
         Initializes the ImageEDA class and triggers the analysis pipeline.
         """
         self.dataset_path: str = dataset_path
+        self.save_reports: bool = save_reports
+        self.save_dir: str = save_dir
         self.results: Dict[str, Any] = {}
         self.class_paths: List[str] = []
+        
+        if self.save_reports:
+            os.makedirs(self.save_dir, exist_ok=True)
+            
         self._perform_eda()
 
     def _perform_eda(self) -> None:
@@ -70,7 +77,7 @@ class ImageEDA:
 
         for path in self.class_paths:
             files = [f for f in os.listdir(path) if f.lower().endswith(exts)]
-            for img_name in files:
+            for img_name in tqdm(files, desc=f"Processing {os.path.basename(path)}"):
                 img_bgr = cv2.imread(os.path.join(path, img_name))
                 if img_bgr is None:
                     continue
@@ -122,7 +129,13 @@ class ImageEDA:
             )
         plt.title("Class-wise Image Distribution")
         plt.xticks(rotation=45)
-        plt.show()
+        plt.tight_layout()
+        if self.save_reports:
+            plt.savefig(os.path.join(self.save_dir, "1_class_distribution.png"), dpi=300)
+            res["df_counts"].to_csv(os.path.join(self.save_dir, "class_counts.csv"), index=False)
+        plt.show(block=False)
+        plt.pause(1)
+        plt.close()
 
         # 2. Sample Grid
         plt.figure(figsize=(12, 8))
@@ -140,7 +153,11 @@ class ImageEDA:
                 plt.axis("off")
         plt.suptitle("Sample Images per Class", fontsize=15)
         plt.tight_layout()
-        plt.show()
+        if self.save_reports:
+            plt.savefig(os.path.join(self.save_dir, "2_sample_grid.png"), dpi=300)
+        plt.show(block=False)
+        plt.pause(1)
+        plt.close()
 
         # 3. Size Analysis
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
@@ -148,7 +165,13 @@ class ImageEDA:
         ax1.set_title("Image Dimensions Outliers")
         sns.histplot(res["sizes_df"]["Aspect_Ratio"], kde=True, color="purple", ax=ax2)
         ax2.set_title("Aspect Ratio Distribution")
-        plt.show()
+        plt.tight_layout()
+        if self.save_reports:
+            plt.savefig(os.path.join(self.save_dir, "3_size_analysis.png"), dpi=300)
+            res["sizes_df"].to_csv(os.path.join(self.save_dir, "image_sizes.csv"), index=False)
+        plt.show(block=False)
+        plt.pause(1)
+        plt.close()
 
         print("\n" + "-" * 45 + "\nIMAGE SIZE DESCRIPTIVE STATISTICS\n")
         print(res["sizes_df"].describe())
@@ -168,7 +191,12 @@ class ImageEDA:
             )
         plt.title("Global Average RGB Intensity Distribution")
         plt.legend()
-        plt.show()
+        plt.tight_layout()
+        if self.save_reports:
+            plt.savefig(os.path.join(self.save_dir, "4_rgb_intensity.png"), dpi=300)
+        plt.show(block=False)
+        plt.pause(1)
+        plt.close()
 
         # 5. Final Summary Table
         max_c = res["df_counts"].loc[res["df_counts"]["Image_Count"].idxmax()]
@@ -191,6 +219,12 @@ class ImageEDA:
                 round(float(res["avg_blur"]), 2),
             ],
         }
+        summary_df = pd.DataFrame(summary)
         print("\n" + "-" * 60 + "\nCOMPLETE DATASET EDA SUMMARY\n")
-        print(pd.DataFrame(summary).to_string(index=False))
+        print(summary_df.to_string(index=False))
         print("-" * 60 + "\n")
+        
+        if self.save_reports:
+            summary_df.to_csv(os.path.join(self.save_dir, "eda_summary.csv"), index=False)
+            print(f"\n[INFO] All reports and visualizations have been saved in: {self.save_dir}")
+
