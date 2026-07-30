@@ -1,7 +1,7 @@
 from .DeepLearningModel import ImageEDA, ImagePreProcessor
 
 
-def run_eda(
+def eda(
     dataset_path: str,
     save_reports: bool = True,
     save_dir: str = "chokkhu_outputs/EDA_Reports",
@@ -14,4 +14,4 @@ def run_eda(
     )
 
 
-__all__ = ["ImageEDA", "ImagePreProcessor", "run_eda"]
+__all__ = ["ImageEDA", "ImagePreProcessor", "eda"]
