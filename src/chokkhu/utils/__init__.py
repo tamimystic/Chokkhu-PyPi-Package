@@ -1,4 +1,4 @@
-from .logger import CustomLogger
-from .custom_exception import CustomException
+from .custom_exception import InvalidURLException
+from .logger import logger
 
-__all__ = ["CustomLogger", "CustomException"]
+__all__ = ["logger", "InvalidURLException"]
