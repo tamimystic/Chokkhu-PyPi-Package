@@ -1,3 +1,3 @@
-from .engine import TabularEDA
+from .engine import tabular
 
-__all__ = ["TabularEDA"]
+__all__ = ["tabular"]

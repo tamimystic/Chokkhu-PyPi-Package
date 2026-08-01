@@ -1,4 +1,13 @@
 from .image.engine import ImageEDA
-from .tabular.engine import TabularEDA
+from .tabular.engine import tabular
 
-__all__ = ["ImageEDA", "TabularEDA"]
+
+def image(
+    dataset_path: str,
+    save_reports: bool = True,
+    save_dir: str = "chokkhu_outputs/EDA_Reports",
+):
+    return ImageEDA(dataset_path, save_reports, save_dir)
+
+
+__all__ = ["image", "tabular", "ImageEDA"]

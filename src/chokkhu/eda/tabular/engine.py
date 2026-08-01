@@ -1,64 +1,58 @@
-import os
-
 import pandas as pd
 
-from chokkhu.core.exceptions import DataLoadError, InvalidFormatError
 from chokkhu.core.logger import Logger
-from chokkhu.core.visualizer import PlotVisualizer
+from chokkhu.eda.tabular.advanced import AdvancedAnalyzer
+from chokkhu.eda.tabular.categorical import CategoricalAnalyzer
+from chokkhu.eda.tabular.metadata import MetadataAnalyzer
+from chokkhu.eda.tabular.missing_data import MissingDataAnalyzer
+from chokkhu.eda.tabular.multivariate import MultivariateAnalyzer
+from chokkhu.eda.tabular.numerical import NumericalAnalyzer
+from chokkhu.eda.tabular.plotter import TabularPlotter
+from chokkhu.eda.tabular.specialized import SpecializedAnalyzer
 
-from .plotter import TabularPlotter
-from .stats import TabularStats
 
+def tabular(
+    dataset_path: str,
+    target_col: str = None,
+    save_reports: bool = False,
+    save_dir: str = "chokkhu_reports",
+):
+    """
+    Ultimate Tabular EDA Pipeline
+    """
+    Logger.info(f"Executing Ultimate Tabular EDA for: {dataset_path}")
 
-class TabularEDA:
-    def __init__(
-        self,
-        dataset_path: str,
-        save_reports: bool = True,
-        save_dir: str = "chokkhu_outputs/EDA_Reports_Tabular",
-    ):
-        self.dataset_path = dataset_path
-        self.save_reports = save_reports
-        self.save_dir = save_dir
-        self.df = pd.DataFrame()
-        self.results: dict = {}
+    try:
+        df = pd.read_csv(dataset_path)
+    except Exception as e:
+        Logger.error(f"Failed to read dataset: {str(e)}")
+        return None
 
-        if self.save_reports:
-            os.makedirs(self.save_dir, exist_ok=True)
+    results = {}
 
-        PlotVisualizer.setup_theme()
-        self._perform_eda()
+    Logger.info("Extracting Topic 1: Metadata & Structural EDA...")
+    results["metadata"] = MetadataAnalyzer.analyze(df)
 
-    def _load_data(self):
-        try:
-            if self.dataset_path.endswith(".csv"):
-                self.df = pd.read_csv(self.dataset_path)
-            elif self.dataset_path.endswith((".xls", ".xlsx")):
-                self.df = pd.read_excel(self.dataset_path)
-            else:
-                raise InvalidFormatError(
-                    "Unsupported file format. Please provide a CSV or Excel file."
-                )
-        except Exception as e:
-            raise DataLoadError(f"Error loading dataset: {e}")
+    Logger.info("Extracting Topic 2: Missing Data & Imputation Impact...")
+    results["missing_data"] = MissingDataAnalyzer.analyze(df)
 
-    def _perform_eda(self):
-        Logger.info(f"Executing Modular Tabular EDA for: {self.dataset_path}")
-        self._load_data()
+    Logger.info("Extracting Topic 3: Quantitative/Numerical Data EDA...")
+    results["numerical"] = NumericalAnalyzer.analyze(df)
 
-        if self.df.empty:
-            Logger.error("Could not load data or dataset is empty.")
-            return
+    Logger.info("Extracting Topic 4: Qualitative/Categorical Data EDA...")
+    results["categorical"] = CategoricalAnalyzer.analyze(df)
 
-        Logger.info("Extracting Statistical Metadata...")
-        self.results = TabularStats.extract(self.df)
+    Logger.info("Extracting Topic 5: Bivariate & Multivariate EDA...")
+    results["multivariate"] = MultivariateAnalyzer.analyze(df)
 
-        plotter = TabularPlotter(
-            self.df, self.results, self.save_dir, self.save_reports
-        )
-        plotter.plot_all()
+    Logger.info("Extracting Topic 6: Specialized Columns EDA...")
+    results["specialized"] = SpecializedAnalyzer.analyze(df)
 
-        if self.save_reports:
-            Logger.info(
-                f"Tabular EDA Complete! All reports saved in 400 DPI at: {self.save_dir}"
-            )
+    Logger.info("Extracting Topic 7: Advanced Machine Learning & Target EDA...")
+    results["advanced"] = AdvancedAnalyzer.analyze(df, target_col=target_col)
+
+    plotter = TabularPlotter(df, results, save_dir, save_reports, target_col)
+    plotter.plot_all()
+
+    Logger.info(f"Tabular EDA Complete! All reports saved in 400 DPI at: {save_dir}")
+    return results
