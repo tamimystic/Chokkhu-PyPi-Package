@@ -126,7 +126,7 @@ class ImageEDA:
 
                 for i in range(3):
                     hist = cv2.calcHist([img_rgb], [i], None, [256], [0, 256])
-                    total_rgb_hist[:, i] += hist.flatten()
+                    total_rgb_hist[:, i] += hist.flatten()  # type: ignore
                 processed_count += 1
 
             if count_img > 0:
