@@ -21,7 +21,7 @@ class TabularEDA:
         self.save_reports = save_reports
         self.save_dir = save_dir
         self.df = pd.DataFrame()
-        self.results = {}
+        self.results: dict = {}
 
         if self.save_reports:
             os.makedirs(self.save_dir, exist_ok=True)

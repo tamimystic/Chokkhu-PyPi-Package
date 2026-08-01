@@ -1,8 +1,6 @@
 import os
 
 
-
-
 class MetadataExtractor:
     @staticmethod
     def extract(img_path: str, img_bgr) -> dict:

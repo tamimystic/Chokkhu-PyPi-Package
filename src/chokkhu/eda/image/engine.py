@@ -25,8 +25,8 @@ class ImageEDA:
         self.dataset_path = dataset_path
         self.save_reports = save_reports
         self.save_dir = save_dir
-        self.results = {}
-        self.class_paths = []
+        self.results: dict = {}
+        self.class_paths: list = []
 
         if self.save_reports:
             os.makedirs(self.save_dir, exist_ok=True)
@@ -97,7 +97,7 @@ class ImageEDA:
                 if sum_img is None:
                     sum_img = resized_for_avg
                 else:
-                    sum_img += resized_for_avg
+                    sum_img += resized_for_avg  # type: ignore
                 count_img += 1
 
                 # Extract features from each domain module
