@@ -91,6 +91,8 @@ class TabularPlotter:
                 sns.countplot(
                     data=self.df,
                     y=col,
+                    hue=col,
+                    legend=False,
                     ax=axes[i],
                     palette="Set2",
                     order=self.df[col].value_counts().index[:10],
