@@ -1,5 +1,4 @@
-from .eda.image import ImageEDA
-from .eda.tabular import TabularEDA
+from .eda import ImageEDA, TabularEDA
 from .preprocessing.image import ImagePreProcessor
 
 
