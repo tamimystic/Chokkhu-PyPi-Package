@@ -266,7 +266,7 @@ class ImagePreProcessor:
 
     def _blur_score(self, img: np.ndarray) -> float:
         gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-        return cv2.Laplacian(gray, cv2.CV_64F).var()
+        return float(cv2.Laplacian(gray, cv2.CV_64F).var())
 
     # EDA BEFORE
 
