@@ -3,7 +3,7 @@ import setuptools
 with open("README.md", "r", encoding="utf-8") as f:
     long_description=f.read()
 
-__version__="0.3.1"
+__version__="0.3.2"
 
 REPO_NAME="Chokkhu-PyPi-Package"
 AUTHOR_USER_NAME="tamimystic"
@@ -37,5 +37,14 @@ setuptools.setup(
         "scipy>=1.10.0",
         "scikit-image>=0.20.0",
         "imagehash>=4.3.0"
-    ]
+    ],
+    extras_require={
+        "dev": [
+            "pytest>=7.2",
+            "flake8>=6.1",
+            "mypy>=1.5",
+            "black>=23.3",
+            "isort>=5.12"
+        ]
+    }
 )
