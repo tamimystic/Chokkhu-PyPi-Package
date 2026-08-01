@@ -57,7 +57,9 @@ class DeepLearningAnalyzer:
         df["PCA2"] = pca_result[:, 1]
 
         perplexity = min(30, max(5, len(embeddings) - 1))
-        tsne = TSNE(n_components=2, perplexity=perplexity, max_iter=300, random_state=42)
+        tsne = TSNE(
+            n_components=2, perplexity=perplexity, max_iter=300, random_state=42
+        )
         tsne_result = tsne.fit_transform(np.array(embeddings))
         df["TSNE1"] = tsne_result[:, 0]
         df["TSNE2"] = tsne_result[:, 1]

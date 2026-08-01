@@ -24,7 +24,13 @@ class ImagePlotter:
         class_counts.columns = ["Class", "Count"]
 
         sns.barplot(
-            data=class_counts, x="Class", y="Count", hue="Class", legend=False, palette="viridis", ax=axes[0]
+            data=class_counts,
+            x="Class",
+            y="Count",
+            hue="Class",
+            legend=False,
+            palette="viridis",
+            ax=axes[0],
         )
         PlotVisualizer.add_bar_labels(axes[0], vertical=True)
         axes[0].set_title("Topic 1: Class-wise Distribution")
@@ -41,7 +47,13 @@ class ImagePlotter:
         axes[1].set_title("Topic 1: Aspect Ratio Profiling")
 
         sns.boxplot(
-            data=self.df, x="Class", y="File_Size_KB", hue="Class", legend=False, palette="Set2", ax=axes[2]
+            data=self.df,
+            x="Class",
+            y="File_Size_KB",
+            hue="Class",
+            legend=False,
+            palette="Set2",
+            ax=axes[2],
         )
         axes[2].set_title("Topic 1: File Storage Size (KB)")
 
@@ -61,12 +73,24 @@ class ImagePlotter:
         axes[0].legend()
 
         sns.violinplot(
-            data=self.df, x="Class", y="Brightness", hue="Class", legend=False, palette="coolwarm", ax=axes[1]
+            data=self.df,
+            x="Class",
+            y="Brightness",
+            hue="Class",
+            legend=False,
+            palette="coolwarm",
+            ax=axes[1],
         )
         axes[1].set_title("Topic 2: Brightness Distribution")
 
         sns.violinplot(
-            data=self.df, x="Class", y="Contrast", hue="Class", legend=False, palette="coolwarm", ax=axes[2]
+            data=self.df,
+            x="Class",
+            y="Contrast",
+            hue="Class",
+            legend=False,
+            palette="coolwarm",
+            ax=axes[2],
         )
         axes[2].set_title("Topic 2: Contrast Profiling")
 
@@ -77,12 +101,24 @@ class ImagePlotter:
     def _plot_texture(self):
         fig, axes = plt.subplots(2, 2, figsize=(16, 12))
         sns.boxplot(
-            data=self.df, x="Class", y="GLCM_Contrast", hue="Class", legend=False, palette="crest", ax=axes[0, 0]
+            data=self.df,
+            x="Class",
+            y="GLCM_Contrast",
+            hue="Class",
+            legend=False,
+            palette="crest",
+            ax=axes[0, 0],
         )
         axes[0, 0].set_title("Topic 3: Texture (GLCM Contrast)")
 
         sns.boxplot(
-            data=self.df, x="Class", y="Edge_Intensity", hue="Class", legend=False, palette="crest", ax=axes[0, 1]
+            data=self.df,
+            x="Class",
+            y="Edge_Intensity",
+            hue="Class",
+            legend=False,
+            palette="crest",
+            ax=axes[0, 1],
         )
         axes[0, 1].set_title("Topic 3: Structural Complexity (Edge Density)")
 
@@ -111,17 +147,37 @@ class ImagePlotter:
     def _plot_quality(self):
         fig, axes = plt.subplots(1, 3, figsize=(18, 5))
         sns.boxplot(
-            data=self.df, x="Class", y="Shannon_Entropy", hue="Class", legend=False, palette="magma", ax=axes[0]
+            data=self.df,
+            x="Class",
+            y="Shannon_Entropy",
+            hue="Class",
+            legend=False,
+            palette="magma",
+            ax=axes[0],
         )
         axes[0].set_title("Topic 4: Shannon Entropy (Information Density)")
 
         sns.boxplot(
-            data=self.df, x="Class", y="Blur_Score", hue="Class", legend=False, palette="magma", ax=axes[1]
+            data=self.df,
+            x="Class",
+            y="Blur_Score",
+            hue="Class",
+            legend=False,
+            palette="magma",
+            ax=axes[1],
         )
         axes[1].set_yscale("log")
         axes[1].set_title("Topic 4: Degradation (Blur/Sharpness)")
 
-        sns.boxplot(data=self.df, x="Class", y="SNR", hue="Class", legend=False, palette="magma", ax=axes[2])
+        sns.boxplot(
+            data=self.df,
+            x="Class",
+            y="SNR",
+            hue="Class",
+            legend=False,
+            palette="magma",
+            ax=axes[2],
+        )
         axes[2].set_title("Topic 4: Signal-to-Noise Ratio (SNR)")
 
         PlotVisualizer.save_and_show(
@@ -158,7 +214,13 @@ class ImagePlotter:
             {-1: "Outlier", 1: "Normal"}
         )
         sns.barplot(
-            data=outliers, x="Outlier_Status", y="Count", hue="Outlier_Status", legend=False, palette="Set1", ax=axes[1, 0]
+            data=outliers,
+            x="Outlier_Status",
+            y="Count",
+            hue="Outlier_Status",
+            legend=False,
+            palette="Set1",
+            ax=axes[1, 0],
         )
         PlotVisualizer.add_bar_labels(axes[1, 0], vertical=True)
         axes[1, 0].set_title("Topic 5: Anomaly/Outlier Detection")
@@ -169,7 +231,13 @@ class ImagePlotter:
             {True: "Duplicate", False: "Unique"}
         )
         sns.barplot(
-            data=dups, x="Duplicate_Status", y="Count", hue="Duplicate_Status", legend=False, palette="Set1", ax=axes[1, 1]
+            data=dups,
+            x="Duplicate_Status",
+            y="Count",
+            hue="Duplicate_Status",
+            legend=False,
+            palette="Set1",
+            ax=axes[1, 1],
         )
         PlotVisualizer.add_bar_labels(axes[1, 1], vertical=True)
         axes[1, 1].set_title("Topic 5: Perceptual Duplicate Screening (pHash)")
