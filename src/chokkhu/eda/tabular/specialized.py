@@ -1,6 +1,6 @@
 import re
-
 from typing import Any, Dict
+
 import pandas as pd
 
 
@@ -11,7 +11,6 @@ class SpecializedAnalyzer:
 
     @staticmethod
     def analyze(df: pd.DataFrame) -> Dict[str, Any]:
-        results: Dict[str, Any] = {}
 
         # 1. Date-Time EDA
         dt_cols = df.select_dtypes(include=["datetime"]).columns.tolist()
@@ -26,7 +25,6 @@ class SpecializedAnalyzer:
                     pass
 
         dt_cols = list(set(dt_cols))
-        results["datetime_cols"] = dt_cols
 
         dt_stats = {}
         for col in dt_cols:
@@ -44,7 +42,6 @@ class SpecializedAnalyzer:
                 "unique_dates": series.nunique(),
                 "max_gap_seconds": diffs.max() if not diffs.empty else 0,
             }
-        results["datetime_stats"] = dt_stats
 
         # 2. Text/NLP Specific Tabular EDA
         text_cols = []
@@ -55,7 +52,6 @@ class SpecializedAnalyzer:
             if not lengths.empty and lengths.mean() > 50:
                 text_cols.append(col)
 
-        results["text_cols"] = text_cols
         text_stats = {}
         for col in text_cols:
             series = df[col].dropna().astype(str)
@@ -68,7 +64,6 @@ class SpecializedAnalyzer:
                 "mean_word_count": word_counts.mean(),
                 "max_word_count": word_counts.max(),
             }
-        results["text_stats"] = text_stats
 
         # 3. Spatial/Geographical EDA
         spatial_stats = {}
@@ -84,6 +79,11 @@ class SpecializedAnalyzer:
                 "min_lon": df[lon].min(),
                 "max_lon": df[lon].max(),
             }
-        results["spatial_stats"] = spatial_stats
 
-        return results
+        return {
+            "datetime_cols": dt_cols,
+            "datetime_stats": dt_stats,
+            "text_cols": text_cols,
+            "text_stats": text_stats,
+            "spatial_stats": spatial_stats,
+        }
