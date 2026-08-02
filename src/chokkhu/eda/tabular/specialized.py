@@ -1,5 +1,6 @@
 import re
 
+from typing import Any, Dict
 import pandas as pd
 
 
@@ -9,8 +10,8 @@ class SpecializedAnalyzer:
     """
 
     @staticmethod
-    def analyze(df: pd.DataFrame) -> dict:
-        results = {}
+    def analyze(df: pd.DataFrame) -> Dict[str, Any]:
+        results: Dict[str, Any] = {}
 
         # 1. Date-Time EDA
         dt_cols = df.select_dtypes(include=["datetime"]).columns.tolist()
