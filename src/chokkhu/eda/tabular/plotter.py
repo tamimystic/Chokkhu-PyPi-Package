@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import seaborn as sns
 
@@ -9,7 +10,7 @@ from chokkhu.core.visualizer import PlotVisualizer
 class TabularPlotter:
     def __init__(
         self,
-        df,
+        df: pd.DataFrame,
         results: dict,
         save_dir: str,
         save_reports: bool,
@@ -21,192 +22,351 @@ class TabularPlotter:
         self.save_reports = save_reports
         self.target_col = target_col
 
-    def plot_all(self):
-        Logger.info("Rendering Ultimate Tabular Visualizations...")
-        self._plot_metadata()
-        self._plot_missing()
-        self._plot_numerical()
-        self._plot_categorical()
-        self._plot_multivariate()
-        self._plot_specialized()
-        self._plot_advanced()
+        # Set clean aesthetic style
+        sns.set_theme(style="whitegrid", palette="muted")
 
-    def _plot_metadata(self):
-        dtypes = self.results.get("metadata", {}).get("dtype_profiling", {})
+    def _add_bar_labels(self, ax, fmt="%.2f"):
+        """Adds text labels to the top of vertical bar charts."""
+        for container in ax.containers:
+            ax.bar_label(container, fmt=fmt, padding=3)
+
+    def plot_all(self):
+        Logger.info("Rendering Ultimate Statistical Visualizations...")
+        self._plot_global()
+        self._plot_univariate()
+        self._plot_bivariate()
+        self._plot_multivariate()
+
+    def _plot_global(self):
+        global_res = self.results.get("global_eda", {})
+
+        # Metadata: Data Types
+        dtypes = global_res.get("dtype_profiling", {})
         if dtypes:
-            fig, ax = plt.subplots(figsize=(8, 5))
+            fig, ax = plt.subplots(figsize=(10, 6))
             sns.barplot(
-                x=list(dtypes.values()),
-                y=list(dtypes.keys()),
+                x=list(dtypes.keys()),
+                y=list(dtypes.values()),
                 hue=list(dtypes.keys()),
                 legend=False,
                 palette="Set2",
                 ax=ax,
             )
-            ax.set_title("Topic 1: Data Type Profiling")
+            ax.set_title("Data Type Distribution")
+            ax.set_ylabel("Count")
+            ax.tick_params(axis="x", rotation=45)
+            self._add_bar_labels(ax, fmt="%d")
             PlotVisualizer.save_and_show(
-                fig, "1_metadata.png", self.save_dir, self.save_reports
+                fig, "0_global_dtypes.png", self.save_dir, self.save_reports
             )
 
-    def _plot_missing(self):
-        missing = self.results.get("missing_data", {}).get("missing_density", {})
-        if missing:
-            fig, ax = plt.subplots(figsize=(10, 6))
-            sns.barplot(
-                x=list(missing.values()),
-                y=list(missing.keys()),
-                hue=list(missing.keys()),
-                legend=False,
-                palette="Reds_r",
-                ax=ax,
+        # Missing Data Matrix
+        missing_matrix = global_res.get("missing_matrix", pd.DataFrame())
+        if not missing_matrix.empty:
+            fig, ax = plt.subplots(figsize=(12, 8))
+            sns.heatmap(
+                missing_matrix, cmap="binary", cbar=False, yticklabels=False, ax=ax
             )
-            ax.set_title("Topic 2: Missing Value Density (%)")
+            ax.set_title("Missing Value Matrix (White = Valid, Black = Missing)")
             PlotVisualizer.save_and_show(
-                fig, "2_missing_density.png", self.save_dir, self.save_reports
+                fig, "0_missing_matrix.png", self.save_dir, self.save_reports
             )
 
-        null_corr = self.results.get("missing_data", {}).get("null_correlation", None)
+        # Nullity Correlation
+        null_corr = global_res.get("null_correlation", None)
         if null_corr is not None and not null_corr.empty:
             fig, ax = plt.subplots(figsize=(10, 8))
-            sns.heatmap(null_corr, annot=True, cmap="coolwarm", center=0, ax=ax)
-            ax.set_title("Topic 2: Nullity Correlation Matrix")
-            PlotVisualizer.save_and_show(
-                fig, "2_null_correlation.png", self.save_dir, self.save_reports
-            )
-
-    def _plot_numerical(self):
-        num_cols = self.results.get("numerical", {}).get("numerical_cols", [])
-        if num_cols:
-            num_plots = min(len(num_cols), 6)
-            fig, axes = plt.subplots(
-                int((num_plots + 1) / 2), 2, figsize=(15, 5 * int((num_plots + 1) / 2))
-            )
-            axes = axes.flatten() if num_plots > 1 else [axes]
-            for i, col in enumerate(num_cols[:num_plots]):
-                sns.histplot(self.df[col].dropna(), kde=True, ax=axes[i], color="teal")
-                axes[i].set_title(f"Topic 3: Distribution of {col}")
-            for j in range(num_plots, len(axes)):
-                axes[j].axis("off")
-            PlotVisualizer.save_and_show(
-                fig, "3_numerical_distributions.png", self.save_dir, self.save_reports
-            )
-
-            fig, axes = plt.subplots(
-                int((num_plots + 1) / 2), 2, figsize=(15, 5 * int((num_plots + 1) / 2))
-            )
-            axes = axes.flatten() if num_plots > 1 else [axes]
-            for i, col in enumerate(num_cols[:num_plots]):
-                sns.boxplot(x=self.df[col].dropna(), ax=axes[i], color="salmon")
-                axes[i].set_title(f"Topic 3: Outliers in {col}")
-            for j in range(num_plots, len(axes)):
-                axes[j].axis("off")
-            PlotVisualizer.save_and_show(
-                fig, "3_numerical_outliers.png", self.save_dir, self.save_reports
-            )
-
-    def _plot_categorical(self):
-        cat_cols = self.results.get("categorical", {}).get("categorical_cols", [])
-        if cat_cols:
-            cat_plots = min(len(cat_cols), 6)
-            fig, axes = plt.subplots(
-                int((cat_plots + 1) / 2), 2, figsize=(15, 6 * int((cat_plots + 1) / 2))
-            )
-            axes = axes.flatten() if cat_plots > 1 else [axes]
-            for i, col in enumerate(cat_cols[:cat_plots]):
-                # Using vertical bars as requested by user (y=col avoids overlap)
-                sns.countplot(
-                    data=self.df,
-                    y=col,
-                    hue=col,
-                    legend=False,
-                    ax=axes[i],
-                    palette="Set2",
-                    order=self.df[col].value_counts().index[:15],
-                )
-                axes[i].set_title(f"Topic 4: Categories in {col}")
-            for j in range(cat_plots, len(axes)):
-                axes[j].axis("off")
-            PlotVisualizer.save_and_show(
-                fig, "4_categorical_counts.png", self.save_dir, self.save_reports
-            )
-
-    def _plot_multivariate(self):
-        pearson = self.results.get("multivariate", {}).get("pearson_corr", None)
-        if pearson is not None and not pearson.empty:
-            fig, ax = plt.subplots(figsize=(12, 10))
             sns.heatmap(
-                pearson, annot=True, cmap="coolwarm", fmt=".2f", ax=ax, center=0
+                null_corr, annot=True, cmap="coolwarm", center=0, fmt=".2f", ax=ax
             )
-            ax.set_title("Topic 5: Pearson Correlation Matrix")
+            ax.set_title("Nullity Correlation Matrix")
             PlotVisualizer.save_and_show(
-                fig, "5_pearson_corr.png", self.save_dir, self.save_reports
+                fig, "0_null_correlation.png", self.save_dir, self.save_reports
             )
 
-        cat_relations = self.results.get("multivariate", {}).get(
-            "categorical_relations", []
-        )
-        if cat_relations:
-            df_cr = pd.DataFrame(cat_relations)
-            if not df_cr.empty:
-                pivot = df_cr.pivot(
-                    index="feature_1", columns="feature_2", values="cramers_v"
-                ).fillna(0)
-                fig, ax = plt.subplots(figsize=(10, 8))
-                sns.heatmap(pivot, annot=True, cmap="YlGnBu", ax=ax)
-                ax.set_title("Topic 5: Cramer's V (Categorical Association)")
-                PlotVisualizer.save_and_show(
-                    fig, "5_cramers_v.png", self.save_dir, self.save_reports
-                )
-
-    def _plot_specialized(self):
-        dt_cols = self.results.get("specialized", {}).get("datetime_cols", [])
-        if dt_cols:
+        # Imputation Shift
+        imputation_shift = global_res.get("imputation_shift", {})
+        if imputation_shift:
+            features = list(imputation_shift.keys())
+            shifts = [v["shift_pct_mean"] for v in imputation_shift.values()]
             fig, ax = plt.subplots(figsize=(12, 6))
-            col = dt_cols[0]
+            sns.barplot(
+                x=features, y=shifts, hue=features, legend=False, palette="Reds", ax=ax
+            )
+            ax.set_title("Variance Shift (%) if Imputed with Mean")
+            ax.set_ylabel("Shift (%)")
+            ax.tick_params(axis="x", rotation=45)
+            self._add_bar_labels(ax)
+            PlotVisualizer.save_and_show(
+                fig, "0_imputation_shift.png", self.save_dir, self.save_reports
+            )
+
+    def _plot_univariate(self):
+        univ = self.results.get("univariate", {})
+
+        # Ordinal
+        ordinal = univ.get("ordinal_stats", {})
+        for col, stats in ordinal.items():
+            freq = stats.get("frequencies", {})
+            fig, ax = plt.subplots(figsize=(10, 6))
+            sns.barplot(
+                x=list(freq.keys()),
+                y=list(freq.values()),
+                hue=list(freq.keys()),
+                legend=False,
+                palette="pastel",
+                ax=ax,
+            )
+            ax.set_title(f"Frequencies in Ordinal Feature: {col}")
+            ax.set_ylabel("Count")
+            ax.tick_params(axis="x", rotation=45)
+            self._add_bar_labels(ax, fmt="%d")
+            PlotVisualizer.save_and_show(
+                fig, f"1_ordinal_{col}.png", self.save_dir, self.save_reports
+            )
+
+        # Nominal
+        nominal = univ.get("nominal_stats", {})
+        for col, stats in nominal.items():
+            series = self.df[col].dropna()
+            top_15 = series.value_counts().head(15)
+            fig, ax = plt.subplots(figsize=(12, 6))
+            sns.barplot(
+                x=top_15.index,
+                y=top_15.values,
+                hue=top_15.index,
+                legend=False,
+                palette="Set3",
+                ax=ax,
+            )
+            ax.set_title(f"Top 15 Categories in Nominal Feature: {col}")
+            ax.set_ylabel("Count")
+            ax.tick_params(axis="x", rotation=90)
+            self._add_bar_labels(ax, fmt="%d")
+            PlotVisualizer.save_and_show(
+                fig, f"1_nominal_{col}.png", self.save_dir, self.save_reports
+            )
+
+        # Discrete
+        discrete = univ.get("discrete_stats", {})
+        for col, stats in discrete.items():
+            freq = stats.get("frequencies", {})
+            fig, ax = plt.subplots(figsize=(10, 6))
+            sns.barplot(
+                x=list(freq.keys()),
+                y=list(freq.values()),
+                hue=list(freq.keys()),
+                legend=False,
+                palette="deep",
+                ax=ax,
+            )
+            ax.set_title(f"Distribution of Discrete Feature: {col}")
+            ax.set_ylabel("Count")
+            ax.tick_params(axis="x", rotation=0)
+            self._add_bar_labels(ax, fmt="%d")
+            PlotVisualizer.save_and_show(
+                fig, f"2_discrete_{col}.png", self.save_dir, self.save_reports
+            )
+
+        # Continuous
+        continuous = univ.get("continuous_stats", {})
+        for col, stats in continuous.items():
+            fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+            sns.histplot(self.df[col].dropna(), kde=True, ax=axes[0], color="teal")
+            axes[0].set_title(f"Distribution of {col}")
+
+            sns.boxplot(y=self.df[col].dropna(), ax=axes[1], color="salmon")
+            axes[1].set_title(f"Outliers in {col} (Vertical Boxplot)")
+            PlotVisualizer.save_and_show(
+                fig, f"2_continuous_{col}.png", self.save_dir, self.save_reports
+            )
+
+        # Specialized: Date-Time
+        datetime = univ.get("datetime_stats", {})
+        for col, stats in datetime.items():
+            fig, ax = plt.subplots(figsize=(12, 6))
             series = pd.to_datetime(self.df[col], errors="coerce").dropna()
-            series.groupby(series.dt.to_period("M")).size().plot(ax=ax, marker="o")
-            ax.set_title(f"Topic 6: Time Series Trend (Monthly Count) for {col}")
+            series.groupby(series.dt.to_period("M")).size().plot(
+                ax=ax, marker="o", color="navy"
+            )
+            stat_text = (
+                "Stationary" if stats.get("pseudo_stationary") else "Non-Stationary"
+            )
+            ax.set_title(f"Time Series Trend (Monthly) for {col} [{stat_text}]")
             ax.set_ylabel("Count")
             PlotVisualizer.save_and_show(
-                fig, "6_datetime_trend.png", self.save_dir, self.save_reports
+                fig, f"3_datetime_{col}.png", self.save_dir, self.save_reports
             )
 
-    def _plot_advanced(self):
-        pca_1 = self.results.get("advanced", {}).get("pca_1", None)
-        pca_2 = self.results.get("advanced", {}).get("pca_2", None)
-        if pca_1 is not None and pca_2 is not None:
-            fig, ax = plt.subplots(figsize=(10, 8))
-            if self.target_col and self.target_col in self.df.columns:
-                sns.scatterplot(
-                    x=pca_1,
-                    y=pca_2,
-                    hue=self.df[self.target_col],
-                    palette="tab10",
-                    ax=ax,
-                )
-            else:
-                sns.scatterplot(x=pca_1, y=pca_2, color="purple", ax=ax)
-            ax.set_title("Topic 7: PCA Deep Embedding")
-            PlotVisualizer.save_and_show(
-                fig, "7_pca_embedding.png", self.save_dir, self.save_reports
-            )
+    def _plot_bivariate(self):
+        biv = self.results.get("bivariate", {}).get("target_analysis", {})
 
-        iv_results = self.results.get("advanced", {}).get("information_value", {})
-        if iv_results:
-            fig, ax = plt.subplots(figsize=(10, 6))
+        # Information Value (IV)
+        iv_res = biv.get("information_value", {})
+        if iv_res:
             iv_df = pd.DataFrame(
-                list(iv_results.items()), columns=["Feature", "IV"]
+                list(iv_res.items()), columns=["Feature", "IV"]
             ).sort_values("IV", ascending=False)
+            fig, ax = plt.subplots(figsize=(12, 6))
             sns.barplot(
                 data=iv_df,
-                x="IV",
-                y="Feature",
+                x="Feature",
+                y="IV",
                 hue="Feature",
                 legend=False,
                 palette="viridis",
                 ax=ax,
             )
-            ax.set_title("Topic 7: Information Value (Predictive Power)")
+            ax.set_title(
+                f"Predictive Power (Information Value) vs Target: {self.target_col}"
+            )
+            ax.tick_params(axis="x", rotation=45)
+            self._add_bar_labels(ax)
             PlotVisualizer.save_and_show(
-                fig, "7_information_value.png", self.save_dir, self.save_reports
+                fig, "4_iv_predictive_power.png", self.save_dir, self.save_reports
+            )
+
+        # ANOVA F-Stats equivalent representation (p-values)
+        anova = biv.get("categorical_vs_target_anova", {})
+        if anova:
+            features = list(anova.keys())
+            p_vals = [anova[f]["anova_p"] for f in features]
+            # Plot -log10(p_value) for better visualization
+            log_p = [-np.log10(p + 1e-9) for p in p_vals]
+            fig, ax = plt.subplots(figsize=(12, 6))
+            sns.barplot(
+                x=features, y=log_p, hue=features, legend=False, palette="magma", ax=ax
+            )
+            ax.set_title(
+                f"ANOVA Significance (-log10 P-Value) vs Target: {self.target_col}"
+            )
+            ax.set_ylabel("-log10(p-value)")
+            ax.tick_params(axis="x", rotation=45)
+            self._add_bar_labels(ax)
+            # Add significance line at p=0.05
+            ax.axhline(y=-np.log10(0.05), color="r", linestyle="--", label="p=0.05")
+            ax.legend()
+            PlotVisualizer.save_and_show(
+                fig, "4_anova_significance.png", self.save_dir, self.save_reports
+            )
+
+    def _plot_multivariate(self):
+        mult = self.results.get("multivariate", {})
+
+        # Pearson Correlation
+        pearson = mult.get("pearson_corr", None)
+        if pearson is not None and not pearson.empty:
+            fig, ax = plt.subplots(figsize=(12, 10))
+            sns.heatmap(
+                pearson, annot=True, cmap="coolwarm", fmt=".2f", center=0, ax=ax
+            )
+            ax.set_title("Pearson Correlation Matrix (Numerical)")
+            PlotVisualizer.save_and_show(
+                fig, "5_pearson_correlation.png", self.save_dir, self.save_reports
+            )
+
+        # Cramer's V
+        cramers = mult.get("cramers_v_matrix", None)
+        if cramers is not None and not cramers.empty:
+            fig, ax = plt.subplots(figsize=(12, 10))
+            sns.heatmap(cramers, annot=True, cmap="YlGnBu", fmt=".2f", ax=ax)
+            ax.set_title("Cramer's V Association Matrix (Categorical)")
+            PlotVisualizer.save_and_show(
+                fig, "5_cramers_v.png", self.save_dir, self.save_reports
+            )
+
+        # VIF
+        vif = mult.get("vif", {})
+        if vif:
+            vif_df = pd.DataFrame(
+                list(vif.items()), columns=["Feature", "VIF"]
+            ).sort_values("VIF", ascending=False)
+            fig, ax = plt.subplots(figsize=(12, 6))
+            sns.barplot(
+                data=vif_df,
+                x="Feature",
+                y="VIF",
+                hue="Feature",
+                legend=False,
+                palette="Reds",
+                ax=ax,
+            )
+            ax.set_title("Variance Inflation Factor (Multicollinearity)")
+            ax.tick_params(axis="x", rotation=45)
+            self._add_bar_labels(ax)
+            ax.axhline(
+                y=5.0, color="r", linestyle="--", label="High VIF Threshold (5.0)"
+            )
+            ax.legend()
+            PlotVisualizer.save_and_show(
+                fig, "5_vif.png", self.save_dir, self.save_reports
+            )
+
+        # Mutual Information
+        mi = mult.get("mutual_information", {})
+        if mi:
+            mi_df = pd.DataFrame(
+                list(mi.items()), columns=["Feature", "MI"]
+            ).sort_values("MI", ascending=False)
+            fig, ax = plt.subplots(figsize=(12, 6))
+            sns.barplot(
+                data=mi_df,
+                x="Feature",
+                y="MI",
+                hue="Feature",
+                legend=False,
+                palette="plasma",
+                ax=ax,
+            )
+            ax.set_title(f"Mutual Information vs Target: {self.target_col}")
+            ax.tick_params(axis="x", rotation=45)
+            self._add_bar_labels(ax)
+            PlotVisualizer.save_and_show(
+                fig, "5_mutual_information.png", self.save_dir, self.save_reports
+            )
+
+        # Dataset Drift (PSI)
+        psi = mult.get("dataset_drift_psi", {})
+        if psi:
+            psi_df = pd.DataFrame(
+                list(psi.items()), columns=["Feature", "PSI"]
+            ).sort_values("PSI", ascending=False)
+            fig, ax = plt.subplots(figsize=(12, 6))
+            sns.barplot(
+                data=psi_df,
+                x="Feature",
+                y="PSI",
+                hue="Feature",
+                legend=False,
+                palette="Oranges",
+                ax=ax,
+            )
+            ax.set_title("Dataset Drift (Population Stability Index over Random Split)")
+            ax.tick_params(axis="x", rotation=45)
+            self._add_bar_labels(ax)
+            ax.axhline(y=0.2, color="r", linestyle="--", label="Drift Threshold (0.2)")
+            ax.legend()
+            PlotVisualizer.save_and_show(
+                fig, "5_dataset_drift.png", self.save_dir, self.save_reports
+            )
+
+        # PCA
+        pca_1 = mult.get("pca_1", None)
+        pca_2 = mult.get("pca_2", None)
+        pca_index = mult.get("pca_index", None)
+        if pca_1 is not None and pca_2 is not None and pca_index is not None:
+            fig, ax = plt.subplots(figsize=(10, 8))
+            if self.target_col and self.target_col in self.df.columns:
+                sns.scatterplot(
+                    x=pca_1,
+                    y=pca_2,
+                    hue=self.df.loc[pca_index, self.target_col],
+                    palette="tab10",
+                    ax=ax,
+                )
+            else:
+                sns.scatterplot(x=pca_1, y=pca_2, color="purple", ax=ax)
+            ax.set_title("PCA Deep Embedding (2D Projection)")
+            PlotVisualizer.save_and_show(
+                fig, "5_pca_embedding.png", self.save_dir, self.save_reports
             )

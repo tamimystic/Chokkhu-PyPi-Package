@@ -1,0 +1,122 @@
+{
+    "global_eda": {
+        "shape": {
+            "rows": 1000,
+            "columns": 9
+        },
+        "memory_mb": 0.21897029876708984,
+        "dtype_profiling": {
+            "float64": 4,
+            "object": 3,
+            "int64": 2
+        },
+        "index_integrity": {
+            "is_unique": true,
+            "has_nans": false
+        },
+        "missing_density": {
+            "age": 5.0,
+            "salary": 6.7
+        },
+        "missing_matrix": "Pandas Object Omitted",
+        "null_correlation": "Pandas Object Omitted",
+        "zero_inflation": {
+            "id": 0.1,
+            "salary": 25.0,
+            "is_remote": 50.2
+        },
+        "imputation_shift": {
+            "age": {
+                "original_variance": 94.19317366685564,
+                "variance_after_mean": 89.47880061045659,
+                "variance_after_median": 89.47897140236651,
+                "shift_pct_mean": 5.00500500500487
+            },
+            "salary": {
+                "original_variance": 2158733809.928249,
+                "variance_after_mean": 2013953864.7178454,
+                "variance_after_median": 2030761567.779655,
+                "shift_pct_mean": 6.706706706706724
+            }
+        }
+    },
+    "univariate": {
+        "type_mapping": {
+            "categorical": {
+                "ordinal": [
+                    "department",
+                    "feedback"
+                ],
+                "nominal": [
+                    "join_date"
+                ]
+            },
+            "numerical": {
+                "discrete": [
+                    "is_remote"
+                ],
+                "continuous": [
+                    "id",
+                    "age",
+                    "salary",
+                    "lat",
+                    "lon"
+                ]
+            },
+            "specialized": {
+                "datetime": [],
+                "text": []
+            }
+        },
+        "ordinal_stats": {
+            "department": {
+                "frequencies": {
+                    "IT": 210,
+                    "Sales": 208,
+                    "Engineering": 204,
+                    "Marketing": 197,
+                    "HR": 181
+                },
+                "rare_labels": [],
+                "cardinality": 5
+            },
+            "feedback": {
+                "frequencies": {
+                    "Average": 260,
+                    "I love working here! Best company ever.": 258,
+                    "Needs improvement": 242,
+                    "Great place": 240
+                },
+                "rare_labels": [],
+                "cardinality": 4
+            }
+        },
+        "nominal_stats": {
+            "join_date": {
+                "cardinality": 1000,
+                "shannon_entropy": 9.96578284196777,
+                "string_inconsistency": false
+            }
+        },
+        "discrete_stats": {
+            "is_remote": {
+                "frequencies": {
+                    "0": 502,
+                    "1": 498
+                },
+                "mean": 0.498,
+                "median": 0.0,
+                "mode": 0.0
+            }
+        },
+        "continuous_stats": {
+            "id": {
+                "mean": 499.5,
+                "median": 499.5,
+                "variance": 83416.66666666667,
+                "std": 288.8194360957494,
+                "skewness": 0.0,
+                "kurtosis": -1.2,
+                "iqr": 499.5,
+                "shapiro_p_value": 5.388678482840241e-17,
+                "is_normal": 

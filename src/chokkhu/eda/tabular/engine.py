@@ -1,58 +1,117 @@
+import json
+import os
+from typing import Any, Dict
+
+import numpy as np
 import pandas as pd
 
 from chokkhu.core.logger import Logger
-from chokkhu.eda.tabular.advanced import AdvancedAnalyzer
-from chokkhu.eda.tabular.categorical import CategoricalAnalyzer
-from chokkhu.eda.tabular.metadata import MetadataAnalyzer
-from chokkhu.eda.tabular.missing_data import MissingDataAnalyzer
+from chokkhu.eda.tabular.bivariate import BivariateAnalyzer
+from chokkhu.eda.tabular.global_eda import GlobalAnalyzer
 from chokkhu.eda.tabular.multivariate import MultivariateAnalyzer
-from chokkhu.eda.tabular.numerical import NumericalAnalyzer
 from chokkhu.eda.tabular.plotter import TabularPlotter
-from chokkhu.eda.tabular.specialized import SpecializedAnalyzer
+from chokkhu.eda.tabular.univariate import UnivariateAnalyzer
 
 
 def tabular(
-    dataset_path: str,
-    target_col: str = None,
+    df: pd.DataFrame = None,
+    dataset_path: str = None,
     save_reports: bool = False,
     save_dir: str = "chokkhu_reports",
-):
-    """
-    Ultimate Tabular EDA Pipeline
-    """
-    Logger.info(f"Executing Ultimate Tabular EDA for: {dataset_path}")
+    target_col: str = None,
+) -> Dict[str, Any]:
+    if isinstance(df, str):
+        dataset_path = df
+        df = None
 
-    try:
-        df = pd.read_csv(dataset_path)
-    except Exception as e:
-        Logger.error(f"Failed to read dataset: {str(e)}")
-        return None
+    if df is None and dataset_path is not None:
+        if dataset_path.endswith(".csv"):
+            df = pd.read_csv(dataset_path)
+        elif dataset_path.endswith(".xlsx"):
+            df = pd.read_excel(dataset_path)
+        elif dataset_path.endswith(".parquet"):
+            df = pd.read_parquet(dataset_path)
+        else:
+            raise ValueError(
+                "Unsupported file format. Please provide a DataFrame or CSV/Excel/Parquet path."
+            )
+    return TabularEDAEngine(df, save_reports, save_dir, target_col).execute()
 
-    results = {}
 
-    Logger.info("Extracting Topic 1: Metadata & Structural EDA...")
-    results["metadata"] = MetadataAnalyzer.analyze(df)
+class TabularEDAEngine:
+    def __init__(
+        self,
+        df: pd.DataFrame,
+        save_reports: bool = False,
+        save_dir: str = "chokkhu_reports",
+        target_col: str = None,
+    ):
+        if not isinstance(df, pd.DataFrame):
+            raise TypeError("Dataset must be a pandas DataFrame.")
+        if df.empty:
+            raise ValueError("DataFrame is empty.")
 
-    Logger.info("Extracting Topic 2: Missing Data & Imputation Impact...")
-    results["missing_data"] = MissingDataAnalyzer.analyze(df)
+        self.df = df
+        self.save_reports = save_reports
+        self.save_dir = save_dir
+        self.target_col = target_col
+        self.results: Dict[str, Any] = {}
 
-    Logger.info("Extracting Topic 3: Quantitative/Numerical Data EDA...")
-    results["numerical"] = NumericalAnalyzer.analyze(df)
+    def execute(self):
+        if self.save_reports:
+            os.makedirs(self.save_dir, exist_ok=True)
+            Logger.info(f"Reports will be saved to {self.save_dir}")
 
-    Logger.info("Extracting Topic 4: Qualitative/Categorical Data EDA...")
-    results["categorical"] = CategoricalAnalyzer.analyze(df)
+        Logger.info("Executing Phase 1: Global Dataset Profiling...")
+        self.results["global_eda"] = GlobalAnalyzer.analyze(self.df)
 
-    Logger.info("Extracting Topic 5: Bivariate & Multivariate EDA...")
-    results["multivariate"] = MultivariateAnalyzer.analyze(df)
+        Logger.info("Executing Phase 2: Univariate Analysis...")
+        self.results["univariate"] = UnivariateAnalyzer.analyze(self.df)
 
-    Logger.info("Extracting Topic 6: Specialized Columns EDA...")
-    results["specialized"] = SpecializedAnalyzer.analyze(df)
+        Logger.info("Executing Phase 3: Bivariate Analysis...")
+        self.results["bivariate"] = BivariateAnalyzer.analyze(self.df, self.target_col)
 
-    Logger.info("Extracting Topic 7: Advanced Machine Learning & Target EDA...")
-    results["advanced"] = AdvancedAnalyzer.analyze(df, target_col=target_col)
+        Logger.info("Executing Phase 4: Multivariate & Advanced Analysis...")
+        self.results["multivariate"] = MultivariateAnalyzer.analyze(
+            self.df, self.target_col
+        )
 
-    plotter = TabularPlotter(df, results, save_dir, save_reports, target_col)
-    plotter.plot_all()
+        Logger.info("Rendering Ultimate Statistical Visualizations...")
+        plotter = TabularPlotter(
+            df=self.df,
+            results=self.results,
+            save_dir=self.save_dir,
+            save_reports=self.save_reports,
+            target_col=self.target_col,
+        )
+        plotter.plot_all()
 
-    Logger.info(f"Tabular EDA Complete! All reports saved in 400 DPI at: {save_dir}")
-    return results
+        if self.save_reports:
+            self._save_json()
+
+        Logger.info("Tabular EDA Pipeline completed successfully.")
+        return self.results
+
+    def _save_json(self):
+        json_path = os.path.join(self.save_dir, "eda_summary.json")
+        try:
+            # Clean up DataFrame/Series objects before saving
+            clean_results = self._sanitize_dict(self.results)
+            with open(json_path, "w") as f:
+                json.dump(clean_results, f, indent=4)
+            Logger.info(f"Summary JSON saved to {json_path}")
+        except Exception as e:
+            Logger.warning(f"Could not save JSON summary: {e}")
+
+    def _sanitize_dict(self, d: Dict[str, Any]) -> Dict[str, Any]:
+        sanitized: Dict[str, Any] = {}
+        for k, v in d.items():
+            if isinstance(v, dict):
+                sanitized[k] = self._sanitize_dict(v)
+            elif isinstance(v, pd.DataFrame) or isinstance(v, pd.Series):
+                sanitized[k] = "Pandas Object Omitted"
+            elif isinstance(v, (np.integer, np.floating)):
+                sanitized[k] = float(v)
+            else:
+                sanitized[k] = v
+        return sanitized
