@@ -114,10 +114,19 @@ class TabularEDAEngine:
         for k, v in d.items():
             if isinstance(v, dict):
                 sanitized[k] = self._sanitize_dict(v)
-            elif isinstance(v, pd.DataFrame) or isinstance(v, pd.Series):
+            elif isinstance(v, (pd.DataFrame, pd.Series)):
                 sanitized[k] = "Pandas Object Omitted"
             elif isinstance(v, (np.integer, np.floating)):
                 sanitized[k] = float(v)
+            elif isinstance(v, np.bool_):
+                sanitized[k] = bool(v)
+            elif isinstance(v, np.ndarray):
+                sanitized[k] = v.tolist()
             else:
-                sanitized[k] = v
+                try:
+                    # Quick check if it's naturally serializable
+                    json.dumps(v)
+                    sanitized[k] = v
+                except (TypeError, OverflowError):
+                    sanitized[k] = str(v)
         return sanitized
