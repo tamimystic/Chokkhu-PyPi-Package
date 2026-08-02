@@ -169,7 +169,7 @@ class BivariateAnalyzer:
                         except Exception:
                             pass
                 target_analysis["categorical_vs_target_anova"] = anova_res
-                
+
             # Point-Biserial correlation / T-Test for Numerical vs Binary Target
             if df[target_col].nunique() == 2:
                 t_tests = {}
@@ -178,8 +178,12 @@ class BivariateAnalyzer:
                         continue
                     try:
                         t_stat, p_val = stats.ttest_ind(
-                            df[df[target_col] == df[target_col].unique()[0]][num_col].dropna(),
-                            df[df[target_col] == df[target_col].unique()[1]][num_col].dropna()
+                            df[df[target_col] == df[target_col].unique()[0]][
+                                num_col
+                            ].dropna(),
+                            df[df[target_col] == df[target_col].unique()[1]][
+                                num_col
+                            ].dropna(),
                         )
                         t_tests[num_col] = {"t_stat": t_stat, "p_val": p_val}
                     except Exception:

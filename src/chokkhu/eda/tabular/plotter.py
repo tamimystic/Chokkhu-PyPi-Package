@@ -170,6 +170,7 @@ class TabularPlotter:
 
         # Continuous
         import scipy.stats as sp_stats
+
         continuous = univ.get("continuous_stats", {})
         for col, stats in continuous.items():
             fig, axes = plt.subplots(2, 2, figsize=(16, 12))
@@ -215,11 +216,13 @@ class TabularPlotter:
         for pair_name, data in cat_vs_cat.items():
             crosstab = data["crosstab"]
             fig, ax = plt.subplots(figsize=(10, 6))
-            crosstab.plot(kind='bar', stacked=True, ax=ax, cmap="viridis")
+            crosstab.plot(kind="bar", stacked=True, ax=ax, cmap="viridis")
             ax.set_title(f"Categorical vs Categorical: {pair_name}")
             ax.set_ylabel("Count")
             ax.tick_params(axis="x", rotation=45)
-            PlotVisualizer.save_and_show(fig, f"4_cat_vs_cat_{pair_name}.png", self.save_dir, self.save_reports)
+            PlotVisualizer.save_and_show(
+                fig, f"4_cat_vs_cat_{pair_name}.png", self.save_dir, self.save_reports
+            )
 
         # Cat vs Num
         cat_vs_num = biv.get("cat_vs_num", {})
@@ -228,9 +231,13 @@ class TabularPlotter:
             num = data["num"]
             fig, ax = plt.subplots(figsize=(10, 6))
             sns.boxplot(x=self.df[cat], y=self.df[num], ax=ax, palette="Set2")
-            ax.set_title(f"Categorical vs Numerical: {pair_name} (ANOVA p={data.get('anova_p', 1.0):.4f})")
+            ax.set_title(
+                f"Categorical vs Numerical: {pair_name} (ANOVA p={data.get('anova_p', 1.0):.4f})"
+            )
             ax.tick_params(axis="x", rotation=45)
-            PlotVisualizer.save_and_show(fig, f"4_cat_vs_num_{pair_name}.png", self.save_dir, self.save_reports)
+            PlotVisualizer.save_and_show(
+                fig, f"4_cat_vs_num_{pair_name}.png", self.save_dir, self.save_reports
+            )
 
         # Num vs Num
         num_vs_num = biv.get("num_vs_num", {})
@@ -239,8 +246,12 @@ class TabularPlotter:
             n2 = data["n2"]
             fig, ax = plt.subplots(figsize=(10, 6))
             sns.scatterplot(x=self.df[n1], y=self.df[n2], ax=ax, color="purple")
-            ax.set_title(f"Numerical vs Numerical: {pair_name} (Pearson={data.get('pearson', 0.0):.4f})")
-            PlotVisualizer.save_and_show(fig, f"4_num_vs_num_{pair_name}.png", self.save_dir, self.save_reports)
+            ax.set_title(
+                f"Numerical vs Numerical: {pair_name} (Pearson={data.get('pearson', 0.0):.4f})"
+            )
+            PlotVisualizer.save_and_show(
+                fig, f"4_num_vs_num_{pair_name}.png", self.save_dir, self.save_reports
+            )
 
         target_analysis = biv.get("target_analysis", {})
 
@@ -292,7 +303,7 @@ class TabularPlotter:
             PlotVisualizer.save_and_show(
                 fig, "4_anova_significance.png", self.save_dir, self.save_reports
             )
-            
+
         # T-Test Representation
         t_tests = target_analysis.get("numerical_vs_target_ttest", {})
         if t_tests:
@@ -301,7 +312,12 @@ class TabularPlotter:
             log_p = [-np.log10(p + 1e-9) for p in p_vals]
             fig, ax = plt.subplots(figsize=(12, 6))
             sns.barplot(
-                x=features, y=log_p, hue=features, legend=False, palette="coolwarm", ax=ax
+                x=features,
+                y=log_p,
+                hue=features,
+                legend=False,
+                palette="coolwarm",
+                ax=ax,
             )
             ax.set_title(
                 f"T-Test Significance (-log10 P-Value) vs Target: {self.target_col}"
