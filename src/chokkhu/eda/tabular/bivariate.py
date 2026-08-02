@@ -10,7 +10,7 @@ from chokkhu.eda.tabular.univariate import UnivariateAnalyzer
 class BivariateAnalyzer:
     """
     Phase 3: Bivariate Analysis
-    Handles Feature vs Feature and Feature vs Target relationships.
+    Handles Feature vs Feature and Feature vs Target relationships deeply across all combinations.
     """
 
     @staticmethod
@@ -67,13 +67,82 @@ class BivariateAnalyzer:
         numerical = types["numerical"]["discrete"] + types["numerical"]["continuous"]
 
         # ---------------------------------------------------------
-        # 1. Feature vs Target (Predictive Power)
+        # 2.1 Categorical vs Categorical Analysis
         # ---------------------------------------------------------
-        target_analysis = {}
-        iv_results = {}
+        print("   >>> 2.1 Categorical vs Categorical Analysis (Cross-tab, Stacked Bar)")
+        cat_vs_cat = {}
+        if len(categorical) >= 2:
+            # We iterate over all pairs of categorical columns
+            for i in range(len(categorical)):
+                for j in range(i + 1, len(categorical)):
+                    c1, c2 = categorical[i], categorical[j]
+                    try:
+                        crosstab = pd.crosstab(df[c1], df[c2])
+                        if not crosstab.empty:
+                            cat_vs_cat[f"{c1}_vs_{c2}"] = {
+                                "c1": c1,
+                                "c2": c2,
+                                "crosstab": crosstab,
+                            }
+                    except Exception:
+                        pass
+        results["cat_vs_cat"] = cat_vs_cat
+
+        # ---------------------------------------------------------
+        # 2.2 Categorical vs Numerical Analysis
+        # ---------------------------------------------------------
+        print("   >>> 2.2 Categorical vs Numerical Analysis (ANOVA, Boxplots, Violin)")
+        cat_vs_num = {}
+        if len(categorical) > 0 and len(numerical) > 0:
+            # All combinations of cat vs num
+            for cat in categorical:
+                for num in numerical:
+                    groups = [
+                        group[num].dropna().values
+                        for name, group in df.groupby(cat)
+                        if len(group) > 5
+                    ]
+                    if len(groups) >= 2:
+                        try:
+                            f_stat, p_val = stats.f_oneway(*groups)
+                            cat_vs_num[f"{cat}_vs_{num}"] = {
+                                "cat": cat,
+                                "num": num,
+                                "anova_p": p_val,
+                            }
+                        except Exception:
+                            pass
+        results["cat_vs_num"] = cat_vs_num
+
+        # ---------------------------------------------------------
+        # 2.3 Numerical vs Numerical Analysis
+        # ---------------------------------------------------------
+        print("   >>> 2.3 Numerical vs Numerical Analysis (Scatter Plots, Hexbins)")
+        num_vs_num = {}
+        if len(numerical) >= 2:
+            for i in range(len(numerical)):
+                for j in range(i + 1, len(numerical)):
+                    n1, n2 = numerical[i], numerical[j]
+                    try:
+                        corr = df[[n1, n2]].corr().iloc[0, 1]
+                        num_vs_num[f"{n1}_vs_{n2}"] = {
+                            "n1": n1,
+                            "n2": n2,
+                            "pearson": corr,
+                        }
+                    except Exception:
+                        pass
+        results["num_vs_num"] = num_vs_num
+
+        # ---------------------------------------------------------
+        # 2.4 Target vs All Features Analysis
+        # ---------------------------------------------------------
         if target_col and target_col in df.columns:
-            # Check if target is binary
+            print("   >>> 2.4 Target vs All Features Analysis (IV, WoE, T-Test)")
+            target_analysis = {}
+            # Binary target predictive power (IV / WoE)
             if df[target_col].nunique() == 2:
+                iv_results = {}
                 for col in df.columns:
                     if col == target_col:
                         continue
@@ -81,7 +150,7 @@ class BivariateAnalyzer:
                     if iv_data and "iv" in iv_data:
                         iv_results[col] = iv_data["iv"]
 
-            target_analysis["information_value"] = iv_results
+                target_analysis["information_value"] = iv_results
 
             # ANOVA / Kruskal (Categorical vs Continuous Target)
             if target_col in numerical:
@@ -100,6 +169,26 @@ class BivariateAnalyzer:
                         except Exception:
                             pass
                 target_analysis["categorical_vs_target_anova"] = anova_res
+                
+            # Point-Biserial correlation / T-Test for Numerical vs Binary Target
+            if df[target_col].nunique() == 2:
+                t_tests = {}
+                for num_col in numerical:
+                    if num_col == target_col:
+                        continue
+                    try:
+                        t_stat, p_val = stats.ttest_ind(
+                            df[df[target_col] == df[target_col].unique()[0]][num_col].dropna(),
+                            df[df[target_col] == df[target_col].unique()[1]][num_col].dropna()
+                        )
+                        t_tests[num_col] = {"t_stat": t_stat, "p_val": p_val}
+                    except Exception:
+                        pass
+                target_analysis["numerical_vs_target_ttest"] = t_tests
 
-        results["target_analysis"] = target_analysis
+            results["target_analysis"] = target_analysis
+        else:
+            # If no target column provided
+            results["target_analysis"] = {}
+
         return results

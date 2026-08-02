@@ -169,14 +169,23 @@ class TabularPlotter:
             )
 
         # Continuous
+        import scipy.stats as sp_stats
         continuous = univ.get("continuous_stats", {})
         for col, stats in continuous.items():
-            fig, axes = plt.subplots(1, 2, figsize=(16, 6))
-            sns.histplot(self.df[col].dropna(), kde=True, ax=axes[0], color="teal")
-            axes[0].set_title(f"Distribution of {col}")
+            fig, axes = plt.subplots(2, 2, figsize=(16, 12))
+            sns.histplot(self.df[col].dropna(), kde=True, ax=axes[0, 0], color="teal")
+            axes[0, 0].set_title(f"Distribution of {col}")
 
-            sns.boxplot(y=self.df[col].dropna(), ax=axes[1], color="salmon")
-            axes[1].set_title(f"Outliers in {col} (Vertical Boxplot)")
+            sns.boxplot(y=self.df[col].dropna(), ax=axes[0, 1], color="salmon")
+            axes[0, 1].set_title(f"Outliers in {col} (Vertical Boxplot)")
+
+            sns.violinplot(y=self.df[col].dropna(), ax=axes[1, 0], color="skyblue")
+            axes[1, 0].set_title(f"Density & Spread in {col} (Violin Plot)")
+
+            sp_stats.probplot(self.df[col].dropna(), dist="norm", plot=axes[1, 1])
+            axes[1, 1].set_title(f"Q-Q Plot for Normal Distribution of {col}")
+
+            plt.tight_layout()
             PlotVisualizer.save_and_show(
                 fig, f"2_continuous_{col}.png", self.save_dir, self.save_reports
             )
@@ -199,10 +208,44 @@ class TabularPlotter:
             )
 
     def _plot_bivariate(self):
-        biv = self.results.get("bivariate", {}).get("target_analysis", {})
+        biv = self.results.get("bivariate", {})
+
+        # Cat vs Cat
+        cat_vs_cat = biv.get("cat_vs_cat", {})
+        for pair_name, data in cat_vs_cat.items():
+            crosstab = data["crosstab"]
+            fig, ax = plt.subplots(figsize=(10, 6))
+            crosstab.plot(kind='bar', stacked=True, ax=ax, cmap="viridis")
+            ax.set_title(f"Categorical vs Categorical: {pair_name}")
+            ax.set_ylabel("Count")
+            ax.tick_params(axis="x", rotation=45)
+            PlotVisualizer.save_and_show(fig, f"4_cat_vs_cat_{pair_name}.png", self.save_dir, self.save_reports)
+
+        # Cat vs Num
+        cat_vs_num = biv.get("cat_vs_num", {})
+        for pair_name, data in cat_vs_num.items():
+            cat = data["cat"]
+            num = data["num"]
+            fig, ax = plt.subplots(figsize=(10, 6))
+            sns.boxplot(x=self.df[cat], y=self.df[num], ax=ax, palette="Set2")
+            ax.set_title(f"Categorical vs Numerical: {pair_name} (ANOVA p={data.get('anova_p', 1.0):.4f})")
+            ax.tick_params(axis="x", rotation=45)
+            PlotVisualizer.save_and_show(fig, f"4_cat_vs_num_{pair_name}.png", self.save_dir, self.save_reports)
+
+        # Num vs Num
+        num_vs_num = biv.get("num_vs_num", {})
+        for pair_name, data in num_vs_num.items():
+            n1 = data["n1"]
+            n2 = data["n2"]
+            fig, ax = plt.subplots(figsize=(10, 6))
+            sns.scatterplot(x=self.df[n1], y=self.df[n2], ax=ax, color="purple")
+            ax.set_title(f"Numerical vs Numerical: {pair_name} (Pearson={data.get('pearson', 0.0):.4f})")
+            PlotVisualizer.save_and_show(fig, f"4_num_vs_num_{pair_name}.png", self.save_dir, self.save_reports)
+
+        target_analysis = biv.get("target_analysis", {})
 
         # Information Value (IV)
-        iv_res = biv.get("information_value", {})
+        iv_res = target_analysis.get("information_value", {})
         if iv_res:
             iv_df = pd.DataFrame(
                 list(iv_res.items()), columns=["Feature", "IV"]
@@ -227,7 +270,7 @@ class TabularPlotter:
             )
 
         # ANOVA F-Stats equivalent representation (p-values)
-        anova = biv.get("categorical_vs_target_anova", {})
+        anova = target_analysis.get("categorical_vs_target_anova", {})
         if anova:
             features = list(anova.keys())
             p_vals = [anova[f]["anova_p"] for f in features]
@@ -248,6 +291,28 @@ class TabularPlotter:
             ax.legend()
             PlotVisualizer.save_and_show(
                 fig, "4_anova_significance.png", self.save_dir, self.save_reports
+            )
+            
+        # T-Test Representation
+        t_tests = target_analysis.get("numerical_vs_target_ttest", {})
+        if t_tests:
+            features = list(t_tests.keys())
+            p_vals = [t_tests[f]["p_val"] for f in features]
+            log_p = [-np.log10(p + 1e-9) for p in p_vals]
+            fig, ax = plt.subplots(figsize=(12, 6))
+            sns.barplot(
+                x=features, y=log_p, hue=features, legend=False, palette="coolwarm", ax=ax
+            )
+            ax.set_title(
+                f"T-Test Significance (-log10 P-Value) vs Target: {self.target_col}"
+            )
+            ax.set_ylabel("-log10(p-value)")
+            ax.tick_params(axis="x", rotation=45)
+            self._add_bar_labels(ax)
+            ax.axhline(y=-np.log10(0.05), color="r", linestyle="--", label="p=0.05")
+            ax.legend()
+            PlotVisualizer.save_and_show(
+                fig, "4_ttest_significance.png", self.save_dir, self.save_reports
             )
 
     def _plot_multivariate(self):

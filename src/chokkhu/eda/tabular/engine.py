@@ -62,16 +62,22 @@ class TabularEDAEngine:
             os.makedirs(self.save_dir, exist_ok=True)
             Logger.info(f"Reports will be saved to {self.save_dir}")
 
-        Logger.info("Executing Phase 1: Global Dataset Profiling...")
+        Logger.info("Executing Phase 0: Global Dataset Profiling...")
         self.results["global_eda"] = GlobalAnalyzer.analyze(self.df)
 
-        Logger.info("Executing Phase 2: Univariate Analysis...")
+        print("\n" + "=" * 50)
+        print("1. Univariate Analysis")
+        print("=" * 50)
         self.results["univariate"] = UnivariateAnalyzer.analyze(self.df)
 
-        Logger.info("Executing Phase 3: Bivariate Analysis...")
+        print("\n" + "=" * 50)
+        print("2. Bivariate Analysis")
+        print("=" * 50)
         self.results["bivariate"] = BivariateAnalyzer.analyze(self.df, self.target_col)
 
-        Logger.info("Executing Phase 4: Multivariate & Advanced Analysis...")
+        print("\n" + "=" * 50)
+        print("3. Multivariate Analysis")
+        print("=" * 50)
         self.results["multivariate"] = MultivariateAnalyzer.analyze(
             self.df, self.target_col
         )

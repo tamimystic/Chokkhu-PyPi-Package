@@ -55,9 +55,11 @@ class UnivariateAnalyzer:
         type_mapping = UnivariateAnalyzer.infer_data_types(df)
         results["type_mapping"] = type_mapping
 
+        print("\n--- 1.1 Categorical Data Analysis ---")
         # ---------------------------------------------------------
         # 1. Categorical: Ordinal
         # ---------------------------------------------------------
+        print("   >>> 1.1.1 Ordinal Features Analysis")
         ordinal_cols = type_mapping["categorical"]["ordinal"]
         ordinal_stats = {}
         for col in ordinal_cols:
@@ -74,6 +76,7 @@ class UnivariateAnalyzer:
         # ---------------------------------------------------------
         # 2. Categorical: Nominal
         # ---------------------------------------------------------
+        print("   >>> 1.1.2 Nominal Features Analysis")
         nominal_cols = type_mapping["categorical"]["nominal"]
         nominal_stats = {}
         for col in nominal_cols:
@@ -88,15 +91,18 @@ class UnivariateAnalyzer:
             inconsistent = lower_counts < series.nunique()
 
             nominal_stats[col] = {
+                "frequencies": freq.head(20).to_dict(),
                 "cardinality": len(freq),
                 "shannon_entropy": entropy,
                 "string_inconsistency": inconsistent,
             }
         results["nominal_stats"] = nominal_stats
 
+        print("\n--- 1.2 Numerical Data Analysis ---")
         # ---------------------------------------------------------
         # 3. Numerical: Discrete
         # ---------------------------------------------------------
+        print("   >>> 1.2.1 Discrete Features Analysis")
         discrete_cols = type_mapping["numerical"]["discrete"]
         discrete_stats = {}
         for col in discrete_cols:
@@ -115,6 +121,7 @@ class UnivariateAnalyzer:
         # ---------------------------------------------------------
         # 4. Numerical: Continuous
         # ---------------------------------------------------------
+        print("   >>> 1.2.2 Continuous Features Analysis")
         continuous_cols = type_mapping["numerical"]["continuous"]
         continuous_stats = {}
         for col in continuous_cols:
@@ -168,9 +175,11 @@ class UnivariateAnalyzer:
             }
         results["continuous_stats"] = continuous_stats
 
+        print("\n--- 1.3 Specialized Data Analysis ---")
         # ---------------------------------------------------------
         # 5. Specialized: Date-Time
         # ---------------------------------------------------------
+        print("   >>> 1.3.1 DateTime Features Analysis")
         datetime_cols = type_mapping["specialized"]["datetime"]
         datetime_stats = {}
         for col in datetime_cols:
@@ -201,6 +210,7 @@ class UnivariateAnalyzer:
         # ---------------------------------------------------------
         # 6. Specialized: Text
         # ---------------------------------------------------------
+        print("   >>> 1.3.2 Text Features Analysis")
         text_cols = type_mapping["specialized"]["text"]
         text_stats = {}
         for col in text_cols:
