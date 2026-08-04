@@ -75,12 +75,10 @@ class MultivariateAnalyzer:
         if len(numerical) > 1:
             num_df = df[numerical].dropna()
             if not num_df.empty:
-                print("   >>> 3.1 Correlation Analysis (Pearson, Spearman)")
                 # Pearson & Spearman
                 results["pearson_corr"] = num_df.corr(method="pearson")
                 results["spearman_corr"] = num_df.corr(method="spearman")
 
-                print("   >>> 3.2 Multicollinearity Analysis (VIF)")
                 # VIF (Scratch Implementation using inverse correlation matrix)
                 corr_matrix = num_df.corr().values
                 try:
@@ -93,7 +91,6 @@ class MultivariateAnalyzer:
         # ---------------------------------------------------------
         # 3.3 Categorical Associations (Cramer's V & MI)
         # ---------------------------------------------------------
-        print("   >>> 3.3 Association Analysis (Cramer's V, Mutual Information)")
         if len(categorical) > 1:
             cat_df = df[categorical].dropna()
             cramers_matrix = pd.DataFrame(
@@ -135,7 +132,6 @@ class MultivariateAnalyzer:
         # ---------------------------------------------------------
         # 3.4 PCA (Deep Embedding)
         # ---------------------------------------------------------
-        print("   >>> 3.4 Dimensionality Reduction (PCA)")
         if len(numerical) >= 2:
             num_df = df[numerical].dropna()
             if len(num_df) > 5:
@@ -155,7 +151,6 @@ class MultivariateAnalyzer:
         # ---------------------------------------------------------
         # 3.5 Dataset Drift (PSI Approximation via Random Split)
         # ---------------------------------------------------------
-        print("   >>> 3.5 Data Drift & Stability (PSI)")
         # For EDA on a single dataset, we simulate drift by splitting 50/50 randomly
         drift_results = {}
         if len(df) > 100:

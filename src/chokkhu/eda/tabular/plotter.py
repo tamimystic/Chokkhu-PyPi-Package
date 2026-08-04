@@ -33,8 +33,14 @@ class TabularPlotter:
     def plot_all(self):
         Logger.info("Rendering Ultimate Statistical Visualizations...")
         self._plot_global()
+        
+        print("\n1. Univariate Analysis")
         self._plot_univariate()
+        
+        print("\n2. Bivariate Analysis")
         self._plot_bivariate()
+        
+        print("\n3. Multivariate Analysis")
         self._plot_multivariate()
 
     def _plot_global(self):
@@ -104,8 +110,11 @@ class TabularPlotter:
     def _plot_univariate(self):
         univ = self.results.get("univariate", {})
 
+        print("\n  Categorical Data Analysis")
         # Ordinal
         ordinal = univ.get("ordinal_stats", {})
+        if ordinal:
+            print("    Ordinal Features Analysis")
         for col, stats in ordinal.items():
             freq = stats.get("frequencies", {})
             fig, ax = plt.subplots(figsize=(10, 6))
@@ -127,6 +136,8 @@ class TabularPlotter:
 
         # Nominal
         nominal = univ.get("nominal_stats", {})
+        if nominal:
+            print("    Nominal Features Analysis")
         for col, stats in nominal.items():
             series = self.df[col].dropna()
             top_15 = series.value_counts().head(15)
@@ -147,8 +158,11 @@ class TabularPlotter:
                 fig, f"1_nominal_{col}.png", self.save_dir, self.save_reports
             )
 
+        print("\n  Numerical Data Analysis")
         # Discrete
         discrete = univ.get("discrete_stats", {})
+        if discrete:
+            print("    Discrete Features Analysis")
         for col, stats in discrete.items():
             freq = stats.get("frequencies", {})
             fig, ax = plt.subplots(figsize=(10, 6))
@@ -172,6 +186,8 @@ class TabularPlotter:
         import scipy.stats as sp_stats
 
         continuous = univ.get("continuous_stats", {})
+        if continuous:
+            print("    Continuous Features Analysis")
         for col, stats in continuous.items():
             fig, axes = plt.subplots(2, 2, figsize=(16, 12))
             sns.histplot(self.df[col].dropna(), kde=True, ax=axes[0, 0], color="teal")
@@ -191,8 +207,11 @@ class TabularPlotter:
                 fig, f"2_continuous_{col}.png", self.save_dir, self.save_reports
             )
 
+        print("\n  Specialized Data Analysis")
         # Specialized: Date-Time
         datetime = univ.get("datetime_stats", {})
+        if datetime:
+            print("    DateTime Features Analysis")
         for col, stats in datetime.items():
             fig, ax = plt.subplots(figsize=(12, 6))
             series = pd.to_datetime(self.df[col], errors="coerce").dropna()
@@ -213,6 +232,8 @@ class TabularPlotter:
 
         # Cat vs Cat
         cat_vs_cat = biv.get("cat_vs_cat", {})
+        if cat_vs_cat:
+            print("  Categorical vs Categorical Analysis (Cross-tab, Stacked Bar)")
         for pair_name, data in cat_vs_cat.items():
             crosstab = data["crosstab"]
             fig, ax = plt.subplots(figsize=(10, 6))
@@ -226,11 +247,13 @@ class TabularPlotter:
 
         # Cat vs Num
         cat_vs_num = biv.get("cat_vs_num", {})
+        if cat_vs_num:
+            print("  Categorical vs Numerical Analysis (ANOVA, Boxplots, Violin)")
         for pair_name, data in cat_vs_num.items():
             cat = data["cat"]
             num = data["num"]
             fig, ax = plt.subplots(figsize=(10, 6))
-            sns.boxplot(x=self.df[cat], y=self.df[num], ax=ax, palette="Set2")
+            sns.boxplot(x=self.df[cat], y=self.df[num], hue=self.df[cat], legend=False, ax=ax, palette="Set2")
             ax.set_title(
                 f"Categorical vs Numerical: {pair_name} (ANOVA p={data.get('anova_p', 1.0):.4f})"
             )
@@ -241,6 +264,8 @@ class TabularPlotter:
 
         # Num vs Num
         num_vs_num = biv.get("num_vs_num", {})
+        if num_vs_num:
+            print("  Numerical vs Numerical Analysis (Scatter Plots, Hexbins)")
         for pair_name, data in num_vs_num.items():
             n1 = data["n1"]
             n2 = data["n2"]
@@ -254,6 +279,8 @@ class TabularPlotter:
             )
 
         target_analysis = biv.get("target_analysis", {})
+        if target_analysis:
+            print("\n  Target vs All Features Analysis (IV, WoE, T-Test)")
 
         # Information Value (IV)
         iv_res = target_analysis.get("information_value", {})
@@ -337,6 +364,7 @@ class TabularPlotter:
         # Pearson Correlation
         pearson = mult.get("pearson_corr", None)
         if pearson is not None and not pearson.empty:
+            print("  Correlation Analysis (Pearson, Spearman)")
             fig, ax = plt.subplots(figsize=(12, 10))
             sns.heatmap(
                 pearson, annot=True, cmap="coolwarm", fmt=".2f", center=0, ax=ax
@@ -349,6 +377,7 @@ class TabularPlotter:
         # Cramer's V
         cramers = mult.get("cramers_v_matrix", None)
         if cramers is not None and not cramers.empty:
+            print("  Association Analysis (Cramer's V, Mutual Information)")
             fig, ax = plt.subplots(figsize=(12, 10))
             sns.heatmap(cramers, annot=True, cmap="YlGnBu", fmt=".2f", ax=ax)
             ax.set_title("Cramer's V Association Matrix (Categorical)")
@@ -359,6 +388,7 @@ class TabularPlotter:
         # VIF
         vif = mult.get("vif", {})
         if vif:
+            print("  Multicollinearity Analysis (VIF)")
             vif_df = pd.DataFrame(
                 list(vif.items()), columns=["Feature", "VIF"]
             ).sort_values("VIF", ascending=False)
@@ -409,6 +439,7 @@ class TabularPlotter:
         # Dataset Drift (PSI)
         psi = mult.get("dataset_drift_psi", {})
         if psi:
+            print("  Data Drift & Stability (PSI)")
             psi_df = pd.DataFrame(
                 list(psi.items()), columns=["Feature", "PSI"]
             ).sort_values("PSI", ascending=False)
@@ -436,6 +467,7 @@ class TabularPlotter:
         pca_2 = mult.get("pca_2", None)
         pca_index = mult.get("pca_index", None)
         if pca_1 is not None and pca_2 is not None and pca_index is not None:
+            print("  Dimensionality Reduction (PCA)")
             fig, ax = plt.subplots(figsize=(10, 8))
             if self.target_col and self.target_col in self.df.columns:
                 sns.scatterplot(

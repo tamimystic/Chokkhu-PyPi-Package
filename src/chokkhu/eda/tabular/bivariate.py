@@ -69,7 +69,6 @@ class BivariateAnalyzer:
         # ---------------------------------------------------------
         # 2.1 Categorical vs Categorical Analysis
         # ---------------------------------------------------------
-        print("   >>> 2.1 Categorical vs Categorical Analysis (Cross-tab, Stacked Bar)")
         cat_vs_cat = {}
         if len(categorical) >= 2:
             # We iterate over all pairs of categorical columns
@@ -91,7 +90,6 @@ class BivariateAnalyzer:
         # ---------------------------------------------------------
         # 2.2 Categorical vs Numerical Analysis
         # ---------------------------------------------------------
-        print("   >>> 2.2 Categorical vs Numerical Analysis (ANOVA, Boxplots, Violin)")
         cat_vs_num = {}
         if len(categorical) > 0 and len(numerical) > 0:
             # All combinations of cat vs num
@@ -117,7 +115,6 @@ class BivariateAnalyzer:
         # ---------------------------------------------------------
         # 2.3 Numerical vs Numerical Analysis
         # ---------------------------------------------------------
-        print("   >>> 2.3 Numerical vs Numerical Analysis (Scatter Plots, Hexbins)")
         num_vs_num = {}
         if len(numerical) >= 2:
             for i in range(len(numerical)):
@@ -138,7 +135,6 @@ class BivariateAnalyzer:
         # 2.4 Target vs All Features Analysis
         # ---------------------------------------------------------
         if target_col and target_col in df.columns:
-            print("   >>> 2.4 Target vs All Features Analysis (IV, WoE, T-Test)")
             target_analysis = {}
             # Binary target predictive power (IV / WoE)
             if df[target_col].nunique() == 2:
