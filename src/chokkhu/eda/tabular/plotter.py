@@ -162,7 +162,7 @@ class TabularPlotter:
         # Discrete
         discrete = univ.get("discrete_stats", {})
         if discrete:
-            print("    Discrete Features Analysis")
+            print("\n    Discrete Features Analysis")
         for col, stats in discrete.items():
             freq = stats.get("frequencies", {})
             fig, ax = plt.subplots(figsize=(10, 6))
@@ -187,7 +187,7 @@ class TabularPlotter:
 
         continuous = univ.get("continuous_stats", {})
         if continuous:
-            print("    Continuous Features Analysis")
+            print("\n    Continuous Features Analysis")
         for col, stats in continuous.items():
             fig, axes = plt.subplots(2, 2, figsize=(16, 12))
             sns.histplot(self.df[col].dropna(), kde=True, ax=axes[0, 0], color="teal")
@@ -280,14 +280,12 @@ class TabularPlotter:
         # Cat vs Cat
         cat_vs_cat = biv.get("cat_vs_cat", {})
         if cat_vs_cat:
-            print("  Categorical vs Categorical Analysis (Contingency Heatmap)")
+            print("\n  Categorical vs Categorical Analysis")
         for pair_name, data in cat_vs_cat.items():
             crosstab = data["crosstab"]
             fig, ax = plt.subplots(figsize=(10, 8))
             sns.heatmap(crosstab, annot=True, fmt="d", cmap="YlGnBu", ax=ax, cbar=True)
-            ax.set_title(
-                f"Categorical vs Categorical: {pair_name} (Contingency Heatmap)"
-            )
+            ax.set_title(f"{pair_name}")
             ax.set_ylabel(crosstab.index.name if crosstab.index.name else "Variable 1")
             ax.set_xlabel(
                 crosstab.columns.name if crosstab.columns.name else "Variable 2"
@@ -300,7 +298,7 @@ class TabularPlotter:
         # Cat vs Num
         cat_vs_num = biv.get("cat_vs_num", {})
         if cat_vs_num:
-            print("  Categorical vs Numerical Analysis (Overlapping KDE Density)")
+            print("\n  Categorical vs Numerical Analysis")
         for pair_name, data in cat_vs_num.items():
             cat = data["cat"]
             num = data["num"]
@@ -321,9 +319,7 @@ class TabularPlotter:
                     linewidth=1.5,
                     ax=ax,
                 )
-            ax.set_title(
-                f"Categorical vs Numerical: {pair_name} (KDE Density, ANOVA p={data.get('anova_p', 1.0):.4f})"
-            )
+            ax.set_title(f"{pair_name}")
             PlotVisualizer.save_and_show(
                 fig, f"4_cat_vs_num_{pair_name}.png", self.save_dir, self.save_reports
             )
@@ -331,7 +327,7 @@ class TabularPlotter:
         # Num vs Num
         num_vs_num = biv.get("num_vs_num", {})
         if num_vs_num:
-            print("  Numerical vs Numerical Analysis (JointPlot with Regression)")
+            print("\n  Numerical vs Numerical Analysis")
         for pair_name, data in num_vs_num.items():
             n1 = data["n1"]
             n2 = data["n2"]
@@ -344,10 +340,7 @@ class TabularPlotter:
                 scatter_kws={"alpha": 0.5, "color": "purple"},
                 line_kws={"color": "red"},
             )
-            g.fig.suptitle(
-                f"Numerical vs Numerical: {pair_name} (Pearson={data.get('pearson', 0.0):.4f})",
-                y=1.02,
-            )
+            g.fig.suptitle(f"{pair_name}", y=1.02)
             PlotVisualizer.save_and_show(
                 g.fig, f"4_num_vs_num_{pair_name}.png", self.save_dir, self.save_reports
             )
