@@ -110,6 +110,50 @@ class TabularPlotter:
     def _plot_univariate(self):
         univ = self.results.get("univariate", {})
 
+        print("\n  Dataset Global Overview")
+        # 1. Missing Values Bar Chart
+        missing = self.df.isnull().sum()
+        if missing.sum() > 0:
+            fig, ax = plt.subplots(figsize=(10, 6))
+            sns.barplot(
+                x=missing.index,
+                y=missing.values,
+                hue=missing.index,
+                legend=False,
+                palette="Reds",
+                ax=ax,
+            )
+            ax.set_title("Missing Values per Column")
+            ax.set_ylabel("Null Count")
+            ax.tick_params(axis="x", rotation=90)
+            self._add_bar_labels(ax, fmt="%d")
+            PlotVisualizer.save_and_show(
+                fig, "0_missing_values.png", self.save_dir, self.save_reports
+            )
+        else:
+            print("    [INFO] No missing values found in the dataset.")
+
+        # 2. Dataset Describe Table
+        desc = self.df.describe().T.round(2)
+        if not desc.empty:
+            fig, ax = plt.subplots(figsize=(14, max(4, len(desc) * 0.5)))
+            ax.axis("tight")
+            ax.axis("off")
+            table = ax.table(
+                cellText=desc.values,
+                rowLabels=desc.index,
+                colLabels=desc.columns,
+                cellLoc="center",
+                loc="center",
+            )
+            table.auto_set_font_size(False)
+            table.set_fontsize(10)
+            table.scale(1, 1.5)
+            ax.set_title("Dataset Statistical Summary (df.describe)")
+            PlotVisualizer.save_and_show(
+                fig, "0_dataset_description.png", self.save_dir, self.save_reports
+            )
+
         print("\n  Categorical Data Analysis")
         # Ordinal
         ordinal = univ.get("ordinal_stats", {})
@@ -138,24 +182,28 @@ class TabularPlotter:
         nominal = univ.get("nominal_stats", {})
         if nominal:
             print("    Nominal Features Analysis")
-        for col, stats in nominal.items():
-            series = self.df[col].dropna()
-            top_15 = series.value_counts().head(15)
-            fig, ax = plt.subplots(figsize=(12, 6))
-            sns.barplot(
-                x=top_15.index,
-                y=top_15.values,
-                hue=top_15.index,
-                legend=False,
-                palette="Set3",
-                ax=ax,
-            )
-            ax.set_title(f"Top 15 Categories in Nominal Feature: {col}")
-            ax.set_ylabel("Count")
-            ax.tick_params(axis="x", rotation=90)
-            self._add_bar_labels(ax, fmt="%d")
-            PlotVisualizer.save_and_show(
-                fig, f"1_nominal_{col}.png", self.save_dir, self.save_reports
+            for col, stats in nominal.items():
+                series = self.df[col].dropna()
+                top_15 = series.value_counts().head(15)
+                fig, ax = plt.subplots(figsize=(12, 6))
+                sns.barplot(
+                    x=top_15.index,
+                    y=top_15.values,
+                    hue=top_15.index,
+                    legend=False,
+                    palette="Set3",
+                    ax=ax,
+                )
+                ax.set_title(f"Top 15 Categories in Nominal Feature: {col}")
+                ax.set_ylabel("Count")
+                ax.tick_params(axis="x", rotation=90)
+                self._add_bar_labels(ax, fmt="%d")
+                PlotVisualizer.save_and_show(
+                    fig, f"1_nominal_{col}.png", self.save_dir, self.save_reports
+                )
+        else:
+            print(
+                "    [INFO] No Nominal features found (no categorical columns with 20-100 unique values)."
             )
 
         print("\n  Numerical Data Analysis")
@@ -282,18 +330,20 @@ class TabularPlotter:
         if cat_vs_cat:
             print("\n  Categorical vs Categorical Analysis")
         for pair_name, data in cat_vs_cat.items():
-            crosstab = data["crosstab"]
-            fig, ax = plt.subplots(figsize=(10, 8))
-            sns.heatmap(crosstab, annot=True, fmt="d", cmap="YlGnBu", ax=ax, cbar=True)
-            ax.set_title(f"{pair_name}")
-            ax.set_ylabel(crosstab.index.name if crosstab.index.name else "Variable 1")
-            ax.set_xlabel(
-                crosstab.columns.name if crosstab.columns.name else "Variable 2"
-            )
-            plt.tight_layout()
-            PlotVisualizer.save_and_show(
-                fig, f"4_cat_vs_cat_{pair_name}.png", self.save_dir, self.save_reports
-            )
+            fig, ax = plt.subplots(figsize=(12, 6))
+            col1, col2 = pair_name.split(" vs ")
+            if col1 in self.df.columns and col2 in self.df.columns:
+                sns.countplot(data=self.df, x=col1, hue=col2, ax=ax, palette="Set2")
+                ax.set_title(f"{pair_name}")
+                ax.tick_params(axis="x", rotation=45)
+                self._add_bar_labels(ax, fmt="%d")
+                plt.tight_layout()
+                PlotVisualizer.save_and_show(
+                    fig,
+                    f"4_cat_vs_cat_{pair_name}.png",
+                    self.save_dir,
+                    self.save_reports,
+                )
 
         # Cat vs Num
         cat_vs_num = biv.get("cat_vs_num", {})
@@ -312,11 +362,10 @@ class TabularPlotter:
                     data=self.df,
                     x=num,
                     hue=cat,
-                    fill=True,
+                    fill=False,
                     common_norm=False,
                     palette="tab10",
-                    alpha=0.4,
-                    linewidth=1.5,
+                    linewidth=2.5,
                     ax=ax,
                 )
             ax.set_title(f"{pair_name}")

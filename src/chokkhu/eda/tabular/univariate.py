@@ -36,9 +36,10 @@ class UnivariateAnalyzer:
                     types["numerical"]["continuous"].append(col)
             else:
                 # object, string, category
-                if n_unique <= 25:
+                # 20 is a standard heuristic in AutoEDA (like Sweetviz/Pandas Profiling) for max categories
+                if n_unique <= 20:
                     types["categorical"]["ordinal"].append(col)
-                elif 25 < n_unique <= 100:
+                elif 20 < n_unique <= 100:
                     types["categorical"]["nominal"].append(col)
                 else:
                     mean_len = series.dropna().astype(str).str.len().mean()
