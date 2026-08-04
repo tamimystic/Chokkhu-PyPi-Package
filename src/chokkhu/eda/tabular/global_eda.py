@@ -24,6 +24,9 @@ class GlobalAnalyzer:
         mem_usage = df.memory_usage(deep=True).sum() / (1024 * 1024)  # MB
         results["memory_mb"] = mem_usage
 
+        # Duplicated Rows (Data Leakage check)
+        results["duplicated_rows"] = int(df.duplicated().sum())
+
         # Data Type Profiling
         dtype_counts = df.dtypes.value_counts().to_dict()
         results["dtype_profiling"] = {str(k): v for k, v in dtype_counts.items()}

@@ -33,13 +33,13 @@ class TabularPlotter:
     def plot_all(self):
         Logger.info("Rendering Ultimate Statistical Visualizations...")
         self._plot_global()
-        
+
         print("\n1. Univariate Analysis")
         self._plot_univariate()
-        
+
         print("\n2. Bivariate Analysis")
         self._plot_bivariate()
-        
+
         print("\n3. Multivariate Analysis")
         self._plot_multivariate()
 
@@ -215,17 +215,64 @@ class TabularPlotter:
         for col, stats in datetime.items():
             fig, ax = plt.subplots(figsize=(12, 6))
             series = pd.to_datetime(self.df[col], errors="coerce").dropna()
-            series.groupby(series.dt.to_period("M")).size().plot(
-                ax=ax, marker="o", color="navy"
+
+            # Plot raw monthly counts
+            monthly_raw = series.groupby(series.dt.to_period("M")).size()
+            monthly_raw.plot(
+                ax=ax, marker="o", color="navy", label="Raw Counts", alpha=0.5
             )
+
+            # Plot moving average trend if available
+            trend = stats.get("monthly_trend", {})
+            if trend:
+                trend_series = pd.Series(trend)
+                trend_series.index = pd.PeriodIndex(trend_series.index, freq="M")
+                trend_series.plot(
+                    ax=ax, color="red", linewidth=2, label="Trend (3-Month MA)"
+                )
+
             stat_text = (
                 "Stationary" if stats.get("pseudo_stationary") else "Non-Stationary"
             )
             ax.set_title(f"Time Series Trend (Monthly) for {col} [{stat_text}]")
             ax.set_ylabel("Count")
+            ax.legend()
             PlotVisualizer.save_and_show(
                 fig, f"3_datetime_{col}.png", self.save_dir, self.save_reports
             )
+
+        # Specialized: Text Analysis (N-Grams)
+        text_stats = univ.get("text_stats", {})
+        if text_stats:
+            print("    Text Features Analysis (N-Grams)")
+        for col, stats in text_stats.items():
+            unigrams = stats.get("top_unigrams", {})
+            bigrams = stats.get("top_bigrams", {})
+
+            if unigrams:
+                fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+
+                sns.barplot(
+                    x=list(unigrams.values()),
+                    y=list(unigrams.keys()),
+                    ax=axes[0],
+                    palette="Blues_d",
+                )
+                axes[0].set_title(f"Top 10 Unigrams: {col}")
+
+                if bigrams:
+                    sns.barplot(
+                        x=list(bigrams.values()),
+                        y=list(bigrams.keys()),
+                        ax=axes[1],
+                        palette="Greens_d",
+                    )
+                    axes[1].set_title(f"Top 10 Bigrams: {col}")
+
+                plt.tight_layout()
+                PlotVisualizer.save_and_show(
+                    fig, f"3_text_{col}_ngrams.png", self.save_dir, self.save_reports
+                )
 
     def _plot_bivariate(self):
         biv = self.results.get("bivariate", {})
@@ -253,7 +300,14 @@ class TabularPlotter:
             cat = data["cat"]
             num = data["num"]
             fig, ax = plt.subplots(figsize=(10, 6))
-            sns.boxplot(x=self.df[cat], y=self.df[num], hue=self.df[cat], legend=False, ax=ax, palette="Set2")
+            sns.boxplot(
+                x=self.df[cat],
+                y=self.df[num],
+                hue=self.df[cat],
+                legend=False,
+                ax=ax,
+                palette="Set2",
+            )
             ax.set_title(
                 f"Categorical vs Numerical: {pair_name} (ANOVA p={data.get('anova_p', 1.0):.4f})"
             )
@@ -369,9 +423,19 @@ class TabularPlotter:
             sns.heatmap(
                 pearson, annot=True, cmap="coolwarm", fmt=".2f", center=0, ax=ax
             )
-            ax.set_title("Pearson Correlation Matrix (Numerical)")
+            ax.set_title("Pearson Correlation Matrix (Linear Relationships)")
             PlotVisualizer.save_and_show(
                 fig, "5_pearson_correlation.png", self.save_dir, self.save_reports
+            )
+
+        # Spearman Correlation
+        spearman = mult.get("spearman_corr", None)
+        if spearman is not None and not spearman.empty:
+            fig, ax = plt.subplots(figsize=(12, 10))
+            sns.heatmap(spearman, annot=True, cmap="mako", fmt=".2f", center=0, ax=ax)
+            ax.set_title("Spearman Correlation Matrix (Non-Linear Monotonic)")
+            PlotVisualizer.save_and_show(
+                fig, "5_spearman_correlation.png", self.save_dir, self.save_reports
             )
 
         # Cramer's V
@@ -482,4 +546,22 @@ class TabularPlotter:
             ax.set_title("PCA Deep Embedding (2D Projection)")
             PlotVisualizer.save_and_show(
                 fig, "5_pca_embedding.png", self.save_dir, self.save_reports
+            )
+
+        # Mahalanobis Distance Outliers
+        mahal = mult.get("mahalanobis_outliers", {})
+        if mahal and mahal.get("count", 0) > 0:
+            print(
+                f"  Multivariate Outliers Detected: {mahal.get('count')} (Mahalanobis)"
+            )
+            distances = mahal.get("distances", [])
+            fig, ax = plt.subplots(figsize=(10, 6))
+            sns.histplot(distances, kde=True, color="crimson", ax=ax, bins=30)
+            ax.set_title(
+                f"Mahalanobis Distance Distribution ({mahal.get('count')} Outliers Detected)"
+            )
+            ax.set_xlabel("Mahalanobis Distance")
+            ax.set_ylabel("Frequency")
+            PlotVisualizer.save_and_show(
+                fig, "5_mahalanobis_outliers.png", self.save_dir, self.save_reports
             )

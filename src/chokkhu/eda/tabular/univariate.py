@@ -79,6 +79,7 @@ class UnivariateAnalyzer:
         for col in nominal_cols:
             series = df[col].dropna()
             freq = series.value_counts()
+            rare_labels = freq[freq < (len(series) * 0.05)].index.tolist()
             # Shannon Entropy from scratch
             probs = freq / len(series)
             entropy = -np.sum(probs * np.log2(probs + 1e-9))
@@ -89,6 +90,7 @@ class UnivariateAnalyzer:
 
             nominal_stats[col] = {
                 "frequencies": freq.head(20).to_dict(),
+                "rare_labels": rare_labels,
                 "cardinality": len(freq),
                 "shannon_entropy": entropy,
                 "string_inconsistency": inconsistent,
@@ -126,13 +128,18 @@ class UnivariateAnalyzer:
             q3 = series.quantile(0.75)
             iqr = q3 - q1
 
-            # Normality Hypothesis Testing (Shapiro-Wilk)
+            # Normality Hypothesis Testing (Shapiro-Wilk vs K-S)
             sample = (
                 series if len(series) <= 5000 else series.sample(5000, random_state=42)
             )
             try:
-                _, p_value = stats.shapiro(sample)
-                is_normal = p_value > 0.05
+                if len(series) > 5000:
+                    stand = (series - series.mean()) / (series.std() + 1e-9)
+                    _, p_value = stats.kstest(stand, "norm")
+                    is_normal = p_value > 0.05
+                else:
+                    _, p_value = stats.shapiro(sample)
+                    is_normal = p_value > 0.05
             except Exception:
                 p_value, is_normal = None, None
 
@@ -190,12 +197,17 @@ class UnivariateAnalyzer:
             )
             pseudo_stationary = abs(v1 - v2) / (v1 + 1e-9) < 0.2 if v1 != 0 else True
 
+            # Monthly counts for trend analysis
+            monthly = series.groupby(series.dt.to_period("M")).size()
+            trend = monthly.rolling(window=3, min_periods=1).mean().to_dict()
+
             datetime_stats[col] = {
                 "min_date": str(series.min()),
                 "max_date": str(series.max()),
                 "unique_dates": series.nunique(),
                 "max_gap_seconds": diffs.max() if not diffs.empty else 0,
                 "pseudo_stationary": pseudo_stationary,
+                "monthly_trend": {str(k): v for k, v in trend.items()},
             }
         results["datetime_stats"] = datetime_stats
 
@@ -208,11 +220,25 @@ class UnivariateAnalyzer:
             series = df[col].dropna().astype(str)
             char_counts = series.str.len()
             word_counts = series.apply(lambda x: len(re.findall(r"\w+", x)))
+
+            # Unigrams and Bigrams
+            from collections import Counter
+
+            unigrams = Counter()  # type: ignore
+            bigrams = Counter()  # type: ignore
+            for text in series:
+                words = re.findall(r"\b\w+\b", text.lower())
+                unigrams.update(words)
+                if len(words) >= 2:
+                    bigrams.update(zip(words[:-1], words[1:]))
+
             text_stats[col] = {
                 "mean_char_length": char_counts.mean(),
                 "max_char_length": char_counts.max(),
                 "mean_word_count": word_counts.mean(),
                 "max_word_count": word_counts.max(),
+                "top_unigrams": dict(unigrams.most_common(10)),
+                "top_bigrams": {" ".join(k): v for k, v in bigrams.most_common(10)},
             }
         results["text_stats"] = text_stats
 

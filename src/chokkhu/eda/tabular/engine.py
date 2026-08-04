@@ -20,13 +20,31 @@ def tabular(
     save_dir: str = "chokkhu_reports",
     target_col: str = None,
 ) -> Dict[str, Any]:
+    if isinstance(dataset_path, pd.DataFrame):
+        df = dataset_path
+        dataset_path = None
+
     if isinstance(df, str):
         dataset_path = df
         df = None
 
     if df is None and dataset_path is not None:
         if dataset_path.endswith(".csv"):
-            df = pd.read_csv(dataset_path)
+            import codecs
+
+            try:
+                # Basic encoding check simulating chardet
+                with codecs.open(
+                    dataset_path, "r", encoding="utf-8", errors="strict"
+                ) as f:
+                    f.read(1024)
+            except UnicodeDecodeError:
+                Logger.warning(
+                    f"Encoding issue detected in {dataset_path}. Falling back to 'latin-1' or other standard encoding."
+                )
+                df = pd.read_csv(dataset_path, encoding="latin-1")
+            else:
+                df = pd.read_csv(dataset_path)
         elif dataset_path.endswith(".xlsx"):
             df = pd.read_excel(dataset_path)
         elif dataset_path.endswith(".parquet"):

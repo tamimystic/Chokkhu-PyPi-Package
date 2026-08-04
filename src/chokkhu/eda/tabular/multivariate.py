@@ -14,16 +14,16 @@ class MultivariateAnalyzer:
     """
 
     @staticmethod
-    def _cramers_v(confusion_matrix: pd.DataFrame) -> float:
-        chi2 = stats.chi2_contingency(confusion_matrix)[0]
+    def _cramers_v(confusion_matrix: pd.DataFrame) -> tuple:
+        chi2, p_val, _, _ = stats.chi2_contingency(confusion_matrix)
         n = confusion_matrix.sum().sum()
         if n == 0:
-            return 0.0
+            return 0.0, 1.0
         r, k = confusion_matrix.shape
         min_dim = min(k - 1, r - 1)
         if min_dim == 0:
-            return 0.0
-        return np.sqrt(chi2 / (n * min_dim))
+            return 0.0, 1.0
+        return np.sqrt(chi2 / (n * min_dim)), p_val
 
     @staticmethod
     def _mutual_information(x: pd.Series, y: pd.Series) -> float:
@@ -88,6 +88,26 @@ class MultivariateAnalyzer:
                 except np.linalg.LinAlgError:
                     results["vif"] = {}
 
+                # Mahalanobis Distance for Multivariate Outliers
+                try:
+                    df_c = num_df - num_df.mean()
+                    cov = np.cov(num_df.T)
+                    inv_cov = np.linalg.inv(cov)
+                    left = np.dot(df_c, inv_cov)
+                    mahal = np.dot(left, df_c.T).diagonal()
+
+                    # Outlier threshold using Chi-Square distribution (p=0.01)
+                    # For df = len(numerical), critical value ~ stats.chi2.ppf(0.99, df=len(numerical))
+                    threshold = stats.chi2.ppf(0.99, df=len(numerical))
+                    outliers_idx = np.where(mahal > threshold)[0]
+                    results["mahalanobis_outliers"] = {
+                        "count": len(outliers_idx),
+                        "percentage": (len(outliers_idx) / len(num_df)) * 100,
+                        "distances": mahal.tolist(),
+                    }
+                except Exception:
+                    results["mahalanobis_outliers"] = {}
+
         # ---------------------------------------------------------
         # 3.3 Categorical Associations (Cramer's V & MI)
         # ---------------------------------------------------------
@@ -98,15 +118,23 @@ class MultivariateAnalyzer:
                 index=categorical,
                 columns=categorical,
             )
+            chi2_pvals = pd.DataFrame(
+                np.zeros((len(categorical), len(categorical))),
+                index=categorical,
+                columns=categorical,
+            )
 
             for i, col1 in enumerate(categorical):
                 for j, col2 in enumerate(categorical):
                     if i < j:
                         confusion = pd.crosstab(cat_df[col1], cat_df[col2])
-                        cv = MultivariateAnalyzer._cramers_v(confusion)
+                        cv, pval = MultivariateAnalyzer._cramers_v(confusion)
                         cramers_matrix.loc[col1, col2] = cv
                         cramers_matrix.loc[col2, col1] = cv
+                        chi2_pvals.loc[col1, col2] = pval
+                        chi2_pvals.loc[col2, col1] = pval
             results["cramers_v_matrix"] = cramers_matrix
+            results["chi2_pvalues"] = chi2_pvals
 
         if target_col and target_col in df.columns:
             mi_results = {}
