@@ -380,18 +380,18 @@ class TabularPlotter:
         for pair_name, data in num_vs_num.items():
             n1 = data["n1"]
             n2 = data["n2"]
-            fig, ax = plt.subplots(figsize=(10, 6))
-            sns.regplot(
+            g = sns.jointplot(
                 data=self.df,
                 x=n1,
                 y=n2,
+                kind="reg",
+                height=8,
                 scatter_kws={"alpha": 0.5, "color": "purple"},
                 line_kws={"color": "red"},
-                ax=ax,
             )
-            ax.set_title(f"{pair_name}")
+            g.fig.suptitle(f"{pair_name}", y=1.02)
             PlotVisualizer.save_and_show(
-                fig, f"4_num_vs_num_{pair_name}.png", self.save_dir, self.save_reports
+                g.fig, f"4_num_vs_num_{pair_name}.png", self.save_dir, self.save_reports
             )
 
         target_analysis = biv.get("target_analysis", {})
