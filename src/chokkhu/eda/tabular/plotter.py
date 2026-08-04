@@ -377,18 +377,43 @@ class TabularPlotter:
         num_vs_num = biv.get("num_vs_num", {})
         if num_vs_num:
             print("\n  Numerical vs Numerical Analysis")
+        # Determine a hue column for JointPlot
+        hue_col = None
+        univ = self.results.get("univariate", {})
+        if (
+            self.target_col
+            and self.target_col in self.df.columns
+            and self.df[self.target_col].nunique() < 10
+        ):
+            hue_col = self.target_col
+        else:
+            ordinal_cols = list(univ.get("ordinal_stats", {}).keys())
+            if ordinal_cols:
+                hue_col = ordinal_cols[0]
+
         for pair_name, data in num_vs_num.items():
             n1 = data["n1"]
             n2 = data["n2"]
-            g = sns.jointplot(
-                data=self.df,
-                x=n1,
-                y=n2,
-                kind="reg",
-                height=8,
-                scatter_kws={"alpha": 0.5, "color": "purple"},
-                line_kws={"color": "red"},
-            )
+            if hue_col and hue_col not in [n1, n2]:
+                g = sns.jointplot(
+                    data=self.df,
+                    x=n1,
+                    y=n2,
+                    hue=hue_col,
+                    height=8,
+                    palette="tab10",
+                    alpha=0.7,
+                )
+            else:
+                g = sns.jointplot(
+                    data=self.df,
+                    x=n1,
+                    y=n2,
+                    kind="reg",
+                    height=8,
+                    scatter_kws={"alpha": 0.5, "color": "purple"},
+                    line_kws={"color": "red"},
+                )
             g.fig.suptitle(f"{pair_name}", y=1.02)
             PlotVisualizer.save_and_show(
                 g.fig, f"4_num_vs_num_{pair_name}.png", self.save_dir, self.save_reports
