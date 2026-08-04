@@ -280,14 +280,19 @@ class TabularPlotter:
         # Cat vs Cat
         cat_vs_cat = biv.get("cat_vs_cat", {})
         if cat_vs_cat:
-            print("  Categorical vs Categorical Analysis (Cross-tab, Stacked Bar)")
+            print("  Categorical vs Categorical Analysis (Contingency Heatmap)")
         for pair_name, data in cat_vs_cat.items():
             crosstab = data["crosstab"]
-            fig, ax = plt.subplots(figsize=(10, 6))
-            crosstab.plot(kind="bar", stacked=True, ax=ax, cmap="viridis")
-            ax.set_title(f"Categorical vs Categorical: {pair_name}")
-            ax.set_ylabel("Count")
-            ax.tick_params(axis="x", rotation=45)
+            fig, ax = plt.subplots(figsize=(10, 8))
+            sns.heatmap(crosstab, annot=True, fmt="d", cmap="YlGnBu", ax=ax, cbar=True)
+            ax.set_title(
+                f"Categorical vs Categorical: {pair_name} (Contingency Heatmap)"
+            )
+            ax.set_ylabel(crosstab.index.name if crosstab.index.name else "Variable 1")
+            ax.set_xlabel(
+                crosstab.columns.name if crosstab.columns.name else "Variable 2"
+            )
+            plt.tight_layout()
             PlotVisualizer.save_and_show(
                 fig, f"4_cat_vs_cat_{pair_name}.png", self.save_dir, self.save_reports
             )
@@ -295,23 +300,30 @@ class TabularPlotter:
         # Cat vs Num
         cat_vs_num = biv.get("cat_vs_num", {})
         if cat_vs_num:
-            print("  Categorical vs Numerical Analysis (ANOVA, Boxplots, Violin)")
+            print("  Categorical vs Numerical Analysis (Overlapping KDE Density)")
         for pair_name, data in cat_vs_num.items():
             cat = data["cat"]
             num = data["num"]
             fig, ax = plt.subplots(figsize=(10, 6))
-            sns.boxplot(
-                x=self.df[cat],
-                y=self.df[num],
-                hue=self.df[cat],
-                legend=False,
-                ax=ax,
-                palette="Set2",
-            )
+
+            import warnings
+
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", category=UserWarning)
+                sns.kdeplot(
+                    data=self.df,
+                    x=num,
+                    hue=cat,
+                    fill=True,
+                    common_norm=False,
+                    palette="tab10",
+                    alpha=0.4,
+                    linewidth=1.5,
+                    ax=ax,
+                )
             ax.set_title(
-                f"Categorical vs Numerical: {pair_name} (ANOVA p={data.get('anova_p', 1.0):.4f})"
+                f"Categorical vs Numerical: {pair_name} (KDE Density, ANOVA p={data.get('anova_p', 1.0):.4f})"
             )
-            ax.tick_params(axis="x", rotation=45)
             PlotVisualizer.save_and_show(
                 fig, f"4_cat_vs_num_{pair_name}.png", self.save_dir, self.save_reports
             )
@@ -319,17 +331,25 @@ class TabularPlotter:
         # Num vs Num
         num_vs_num = biv.get("num_vs_num", {})
         if num_vs_num:
-            print("  Numerical vs Numerical Analysis (Scatter Plots, Hexbins)")
+            print("  Numerical vs Numerical Analysis (JointPlot with Regression)")
         for pair_name, data in num_vs_num.items():
             n1 = data["n1"]
             n2 = data["n2"]
-            fig, ax = plt.subplots(figsize=(10, 6))
-            sns.scatterplot(x=self.df[n1], y=self.df[n2], ax=ax, color="purple")
-            ax.set_title(
-                f"Numerical vs Numerical: {pair_name} (Pearson={data.get('pearson', 0.0):.4f})"
+            g = sns.jointplot(
+                data=self.df,
+                x=n1,
+                y=n2,
+                kind="reg",
+                height=8,
+                scatter_kws={"alpha": 0.5, "color": "purple"},
+                line_kws={"color": "red"},
+            )
+            g.fig.suptitle(
+                f"Numerical vs Numerical: {pair_name} (Pearson={data.get('pearson', 0.0):.4f})",
+                y=1.02,
             )
             PlotVisualizer.save_and_show(
-                fig, f"4_num_vs_num_{pair_name}.png", self.save_dir, self.save_reports
+                g.fig, f"4_num_vs_num_{pair_name}.png", self.save_dir, self.save_reports
             )
 
         target_analysis = biv.get("target_analysis", {})
@@ -534,13 +554,32 @@ class TabularPlotter:
             print("  Dimensionality Reduction (PCA)")
             fig, ax = plt.subplots(figsize=(10, 8))
             if self.target_col and self.target_col in self.df.columns:
-                sns.scatterplot(
-                    x=pca_1,
-                    y=pca_2,
-                    hue=self.df.loc[pca_index, self.target_col],
-                    palette="tab10",
-                    ax=ax,
-                )
+                target_data = self.df.loc[pca_index, self.target_col]
+                if (
+                    pd.api.types.is_numeric_dtype(target_data)
+                    and target_data.nunique() > 15
+                ):
+                    sns.scatterplot(
+                        x=pca_1,
+                        y=pca_2,
+                        hue=target_data,
+                        palette="viridis",
+                        legend=False,
+                        ax=ax,
+                    )
+                    norm = plt.Normalize(target_data.min(), target_data.max())
+                    sm = plt.cm.ScalarMappable(cmap="viridis", norm=norm)
+                    sm.set_array([])
+                    cbar = fig.colorbar(sm, ax=ax)
+                    cbar.set_label(self.target_col)
+                else:
+                    sns.scatterplot(
+                        x=pca_1,
+                        y=pca_2,
+                        hue=target_data,
+                        palette="tab10",
+                        ax=ax,
+                    )
             else:
                 sns.scatterplot(x=pca_1, y=pca_2, color="purple", ax=ax)
             ax.set_title("PCA Deep Embedding (2D Projection)")
