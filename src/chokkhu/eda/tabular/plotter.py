@@ -331,7 +331,8 @@ class TabularPlotter:
             print("\n  Categorical vs Categorical Analysis")
         for pair_name, data in cat_vs_cat.items():
             fig, ax = plt.subplots(figsize=(12, 6))
-            col1, col2 = pair_name.split(" vs ")
+            col1 = data["c1"]
+            col2 = data["c2"]
             if col1 in self.df.columns and col2 in self.df.columns:
                 sns.countplot(data=self.df, x=col1, hue=col2, ax=ax, palette="Set2")
                 ax.set_title(f"{pair_name}")
