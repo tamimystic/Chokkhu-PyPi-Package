@@ -1,10 +1,12 @@
 import matplotlib.pyplot as plt
 import pandas as pd
-import seaborn as sns
 import scipy.stats as sp_stats
+import seaborn as sns
 
 from chokkhu.core.visualizer import PlotVisualizer
+
 from .base_plotter import BasePlotter
+
 
 class UnivariatePlotter(BasePlotter):
     def plot(self):

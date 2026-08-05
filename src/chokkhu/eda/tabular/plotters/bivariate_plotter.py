@@ -1,10 +1,12 @@
 import matplotlib.pyplot as plt
-import pandas as pd
 import numpy as np
+import pandas as pd
 import seaborn as sns
 
 from chokkhu.core.visualizer import PlotVisualizer
+
 from .base_plotter import BasePlotter
+
 
 class BivariatePlotter(BasePlotter):
     def plot(self):
@@ -25,7 +27,10 @@ class BivariatePlotter(BasePlotter):
                 self._add_bar_labels(ax, fmt="%d")
                 plt.tight_layout()
                 PlotVisualizer.save_and_show(
-                    fig, f"4_cat_vs_cat_{pair_name}.png", self.save_dir, self.save_reports
+                    fig,
+                    f"4_cat_vs_cat_{pair_name}.png",
+                    self.save_dir,
+                    self.save_reports,
                 )
 
         # Cat vs Num
@@ -38,6 +43,7 @@ class BivariatePlotter(BasePlotter):
             fig, ax = plt.subplots(figsize=(10, 6))
 
             import warnings
+
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", category=UserWarning)
                 sns.kdeplot(
@@ -59,11 +65,15 @@ class BivariatePlotter(BasePlotter):
         num_vs_num = biv.get("num_vs_num", {})
         if num_vs_num:
             print("\n  Numerical vs Numerical Analysis")
-        
+
         # Determine a hue column for JointPlot
         hue_col = None
         univ = self.results.get("univariate", {})
-        if self.target_col and self.target_col in self.df.columns and self.df[self.target_col].nunique() < 10:
+        if (
+            self.target_col
+            and self.target_col in self.df.columns
+            and self.df[self.target_col].nunique() < 10
+        ):
             hue_col = self.target_col
         else:
             ordinal_cols = list(univ.get("ordinal_stats", {}).keys())
@@ -81,7 +91,7 @@ class BivariatePlotter(BasePlotter):
                     hue=hue_col,
                     height=8,
                     palette="tab10",
-                    alpha=0.7
+                    alpha=0.7,
                 )
             else:
                 g = sns.jointplot(

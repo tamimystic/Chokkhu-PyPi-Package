@@ -3,7 +3,9 @@ import pandas as pd
 import seaborn as sns
 
 from chokkhu.core.visualizer import PlotVisualizer
+
 from .base_plotter import BasePlotter
+
 
 class MultivariatePlotter(BasePlotter):
     def plot(self):

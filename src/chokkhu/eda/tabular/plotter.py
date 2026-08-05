@@ -1,16 +1,18 @@
 import pandas as pd
+
 from chokkhu.core.logger import Logger
 
-from .plotters.global_plotter import GlobalPlotter
-from .plotters.univariate_plotter import UnivariatePlotter
 from .plotters.bivariate_plotter import BivariatePlotter
+from .plotters.global_plotter import GlobalPlotter
 from .plotters.multivariate_plotter import MultivariatePlotter
+from .plotters.univariate_plotter import UnivariatePlotter
 
 
 class TabularPlotter:
     """
     Facade class that orchestrates all the modular sub-plotters.
     """
+
     def __init__(
         self,
         df: pd.DataFrame,
@@ -26,14 +28,22 @@ class TabularPlotter:
         self.target_col = target_col
 
         # Initialize sub-plotters
-        self.global_plotter = GlobalPlotter(df, results, save_dir, save_reports, target_col)
-        self.univariate_plotter = UnivariatePlotter(df, results, save_dir, save_reports, target_col)
-        self.bivariate_plotter = BivariatePlotter(df, results, save_dir, save_reports, target_col)
-        self.multivariate_plotter = MultivariatePlotter(df, results, save_dir, save_reports, target_col)
+        self.global_plotter = GlobalPlotter(
+            df, results, save_dir, save_reports, target_col
+        )
+        self.univariate_plotter = UnivariatePlotter(
+            df, results, save_dir, save_reports, target_col
+        )
+        self.bivariate_plotter = BivariatePlotter(
+            df, results, save_dir, save_reports, target_col
+        )
+        self.multivariate_plotter = MultivariatePlotter(
+            df, results, save_dir, save_reports, target_col
+        )
 
     def plot_all(self):
         Logger.info("Rendering Ultimate Statistical Visualizations...")
-        
+
         self.global_plotter.plot()
 
         print("\n1. Univariate Analysis")

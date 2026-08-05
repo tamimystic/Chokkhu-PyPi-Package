@@ -3,7 +3,9 @@ import pandas as pd
 import seaborn as sns
 
 from chokkhu.core.visualizer import PlotVisualizer
+
 from .base_plotter import BasePlotter
+
 
 class GlobalPlotter(BasePlotter):
     def plot(self):
