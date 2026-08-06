@@ -3,7 +3,7 @@ import setuptools
 with open("README.md", "r", encoding="utf-8") as f:
     long_description=f.read()
 
-__version__="0.3.23"
+__version__="0.3.24"
 
 REPO_NAME="Chokkhu-PyPi-Package"
 AUTHOR_USER_NAME="tamimystic"
@@ -39,14 +39,14 @@ setuptools.setup(
     package_dir={"": "src"},
     packages=setuptools.find_packages(where="src"),
     install_requires=[
-        "numpy>=1.23",
-        "Pillow>=9.0",
-        "matplotlib>=3.7",
-        "seaborn>=0.12",
-        "pandas>=2.0.0",
-        "opencv-python>=4.8.0",
-        "tqdm>=4.65.0",
-        "scipy>=1.10.0"
+        "numpy",
+        "Pillow",
+        "matplotlib",
+        "seaborn",
+        "pandas",
+        "opencv-python",
+        "tqdm",
+        "scipy"
     ],
     extras_require={
         "dev": [
