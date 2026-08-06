@@ -16,10 +16,16 @@ class ImagePlotter:
         self._plot_color()
         self._plot_texture()
         self._plot_quality()
-        self._plot_deep_learning()
+
+    def _save_and_close(self, fig, filename):
+        PlotVisualizer.save_and_show(
+            fig, filename, self.save_dir, self.save_reports
+        )
+        plt.close(fig)
 
     def _plot_structural(self):
-        fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+        # 1. Class Distribution
+        fig, ax = plt.subplots(figsize=(10, 6))
         class_counts = self.df["Class"].value_counts().reset_index()
         class_counts.columns = ["Class", "Count"]
 
@@ -30,22 +36,28 @@ class ImagePlotter:
             hue="Class",
             legend=False,
             palette="viridis",
-            ax=axes[0],
+            ax=ax,
         )
-        PlotVisualizer.add_bar_labels(axes[0], vertical=True)
-        axes[0].set_title("Topic 1: Class-wise Distribution")
-        axes[0].tick_params(axis="x", rotation=45)
+        PlotVisualizer.add_bar_labels(ax, vertical=True)
+        ax.set_title("Class-wise Distribution")
+        ax.tick_params(axis="x", rotation=45)
+        self._save_and_close(fig, "1_class_distribution.png")
 
+        # 2. Aspect Ratio Profiling
+        fig, ax = plt.subplots(figsize=(10, 6))
         sns.histplot(
             data=self.df,
             x="Aspect_Ratio",
             hue="Class",
             kde=False,
             element="step",
-            ax=axes[1],
+            ax=ax,
         )
-        axes[1].set_title("Topic 1: Aspect Ratio Profiling")
+        ax.set_title("Aspect Ratio Profiling")
+        self._save_and_close(fig, "1_aspect_ratio.png")
 
+        # 3. File Storage Size
+        fig, ax = plt.subplots(figsize=(10, 6))
         sns.boxplot(
             data=self.df,
             x="Class",
@@ -53,25 +65,26 @@ class ImagePlotter:
             hue="Class",
             legend=False,
             palette="Set2",
-            ax=axes[2],
+            ax=ax,
         )
-        axes[2].set_title("Topic 1: File Storage Size (KB)")
-
-        PlotVisualizer.save_and_show(
-            fig, "1_structural_analysis.png", self.save_dir, self.save_reports
-        )
+        ax.set_title("File Storage Size (KB)")
+        self._save_and_close(fig, "1_file_size.png")
 
     def _plot_color(self):
-        fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+        # 1. Color Intensity
+        fig, ax = plt.subplots(figsize=(10, 6))
         avg_hist = self.results.get("avg_rgb_hist")
 
         if avg_hist is not None:
             for i, col in enumerate(["red", "green", "blue"]):
-                axes[0].plot(avg_hist[:, i], color=col, label=f"{col.upper()}")
-                axes[0].fill_between(range(256), avg_hist[:, i], color=col, alpha=0.15)
-        axes[0].set_title("Topic 2: Color Intensity Histograms")
-        axes[0].legend()
+                ax.plot(avg_hist[:, i], color=col, label=f"{col.upper()}")
+                ax.fill_between(range(256), avg_hist[:, i], color=col, alpha=0.15)
+        ax.set_title("Color Intensity Histograms")
+        ax.legend()
+        self._save_and_close(fig, "2_color_intensity.png")
 
+        # 2. Brightness
+        fig, ax = plt.subplots(figsize=(10, 6))
         sns.violinplot(
             data=self.df,
             x="Class",
@@ -79,10 +92,13 @@ class ImagePlotter:
             hue="Class",
             legend=False,
             palette="coolwarm",
-            ax=axes[1],
+            ax=ax,
         )
-        axes[1].set_title("Topic 2: Brightness Distribution")
+        ax.set_title("Brightness Distribution")
+        self._save_and_close(fig, "2_brightness.png")
 
+        # 3. Contrast
+        fig, ax = plt.subplots(figsize=(10, 6))
         sns.violinplot(
             data=self.df,
             x="Class",
@@ -90,16 +106,14 @@ class ImagePlotter:
             hue="Class",
             legend=False,
             palette="coolwarm",
-            ax=axes[2],
+            ax=ax,
         )
-        axes[2].set_title("Topic 2: Contrast Profiling")
-
-        PlotVisualizer.save_and_show(
-            fig, "2_color_analysis.png", self.save_dir, self.save_reports
-        )
+        ax.set_title("Contrast Profiling")
+        self._save_and_close(fig, "2_contrast.png")
 
     def _plot_texture(self):
-        fig, axes = plt.subplots(2, 2, figsize=(16, 12))
+        # 1. GLCM Contrast
+        fig, ax = plt.subplots(figsize=(10, 6))
         sns.boxplot(
             data=self.df,
             x="Class",
@@ -107,10 +121,13 @@ class ImagePlotter:
             hue="Class",
             legend=False,
             palette="crest",
-            ax=axes[0, 0],
+            ax=ax,
         )
-        axes[0, 0].set_title("Topic 3: Texture (GLCM Contrast)")
+        ax.set_title("Texture (GLCM Contrast)")
+        self._save_and_close(fig, "3_texture_contrast.png")
 
+        # 2. Edge Density
+        fig, ax = plt.subplots(figsize=(10, 6))
         sns.boxplot(
             data=self.df,
             x="Class",
@@ -118,10 +135,13 @@ class ImagePlotter:
             hue="Class",
             legend=False,
             palette="crest",
-            ax=axes[0, 1],
+            ax=ax,
         )
-        axes[0, 1].set_title("Topic 3: Structural Complexity (Edge Density)")
+        ax.set_title("Structural Complexity (Edge Density)")
+        self._save_and_close(fig, "3_edge_density.png")
 
+        # 3. GLCM Homogeneity
+        fig, ax = plt.subplots(figsize=(10, 6))
         sns.boxplot(
             data=self.df,
             x="Class",
@@ -129,23 +149,23 @@ class ImagePlotter:
             hue="Class",
             legend=False,
             palette="crest",
-            ax=axes[1, 0],
+            ax=ax,
         )
-        axes[1, 0].set_title("Topic 3: Texture (GLCM Homogeneity)")
+        ax.set_title("Texture (GLCM Homogeneity)")
+        self._save_and_close(fig, "3_texture_homogeneity.png")
 
+        # 4. Average Images
         avg_imgs = self.results.get("avg_images", {})
-        keys = list(avg_imgs.keys())
-        if keys:
-            axes[1, 1].imshow(avg_imgs[keys[0]])
-            axes[1, 1].set_title(f"Topic 3: Average Visual (Class: {keys[0]})")
-            axes[1, 1].axis("off")
-
-        PlotVisualizer.save_and_show(
-            fig, "3_spatial_texture.png", self.save_dir, self.save_reports
-        )
+        for class_name, img in avg_imgs.items():
+            fig, ax = plt.subplots(figsize=(6, 6))
+            ax.imshow(img)
+            ax.set_title(f"Average Visual (Class: {class_name})")
+            ax.axis("off")
+            self._save_and_close(fig, f"3_avg_image_{class_name}.png")
 
     def _plot_quality(self):
-        fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+        # 1. Shannon Entropy
+        fig, ax = plt.subplots(figsize=(10, 6))
         sns.boxplot(
             data=self.df,
             x="Class",
@@ -153,10 +173,13 @@ class ImagePlotter:
             hue="Class",
             legend=False,
             palette="magma",
-            ax=axes[0],
+            ax=ax,
         )
-        axes[0].set_title("Topic 4: Shannon Entropy (Information Density)")
+        ax.set_title("Shannon Entropy (Information Density)")
+        self._save_and_close(fig, "4_entropy.png")
 
+        # 2. Blur Score
+        fig, ax = plt.subplots(figsize=(10, 6))
         sns.boxplot(
             data=self.df,
             x="Class",
@@ -164,11 +187,14 @@ class ImagePlotter:
             hue="Class",
             legend=False,
             palette="magma",
-            ax=axes[1],
+            ax=ax,
         )
-        axes[1].set_yscale("log")
-        axes[1].set_title("Topic 4: Degradation (Blur/Sharpness)")
+        ax.set_yscale("log")
+        ax.set_title("Degradation (Blur/Sharpness)")
+        self._save_and_close(fig, "4_blur.png")
 
+        # 3. SNR
+        fig, ax = plt.subplots(figsize=(10, 6))
         sns.boxplot(
             data=self.df,
             x="Class",
@@ -176,72 +202,7 @@ class ImagePlotter:
             hue="Class",
             legend=False,
             palette="magma",
-            ax=axes[2],
+            ax=ax,
         )
-        axes[2].set_title("Topic 4: Signal-to-Noise Ratio (SNR)")
-
-        PlotVisualizer.save_and_show(
-            fig, "4_quality_analysis.png", self.save_dir, self.save_reports
-        )
-
-    def _plot_deep_learning(self):
-        fig, axes = plt.subplots(2, 2, figsize=(18, 12))
-        sns.scatterplot(
-            data=self.df,
-            x="PCA1",
-            y="PCA2",
-            hue="Class",
-            palette="tab10",
-            alpha=0.7,
-            ax=axes[0, 0],
-        )
-        axes[0, 0].set_title("Topic 5: Deep Embedding (PCA)")
-
-        sns.scatterplot(
-            data=self.df,
-            x="TSNE1",
-            y="TSNE2",
-            hue="Class",
-            palette="tab10",
-            alpha=0.7,
-            ax=axes[0, 1],
-        )
-        axes[0, 1].set_title("Topic 5: Deep Embedding (t-SNE)")
-
-        outliers = self.df["Is_Outlier"].value_counts().reset_index()
-        outliers.columns = ["Outlier_Status", "Count"]
-        outliers["Outlier_Status"] = outliers["Outlier_Status"].map(
-            {-1: "Outlier", 1: "Normal"}
-        )
-        sns.barplot(
-            data=outliers,
-            x="Outlier_Status",
-            y="Count",
-            hue="Outlier_Status",
-            legend=False,
-            palette="Set1",
-            ax=axes[1, 0],
-        )
-        PlotVisualizer.add_bar_labels(axes[1, 0], vertical=True)
-        axes[1, 0].set_title("Topic 5: Anomaly/Outlier Detection")
-
-        dups = self.df["Is_Duplicate"].value_counts().reset_index()
-        dups.columns = ["Duplicate_Status", "Count"]
-        dups["Duplicate_Status"] = dups["Duplicate_Status"].map(
-            {True: "Duplicate", False: "Unique"}
-        )
-        sns.barplot(
-            data=dups,
-            x="Duplicate_Status",
-            y="Count",
-            hue="Duplicate_Status",
-            legend=False,
-            palette="Set1",
-            ax=axes[1, 1],
-        )
-        PlotVisualizer.add_bar_labels(axes[1, 1], vertical=True)
-        axes[1, 1].set_title("Topic 5: Perceptual Duplicate Screening (pHash)")
-
-        PlotVisualizer.save_and_show(
-            fig, "5_deep_learning.png", self.save_dir, self.save_reports
-        )
+        ax.set_title("Signal-to-Noise Ratio (SNR)")
+        self._save_and_close(fig, "4_snr.png")
