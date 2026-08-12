@@ -45,3 +45,5 @@ Thumbs.db
 
 # PyPI credentials
 .pypirc
+
+scratch/

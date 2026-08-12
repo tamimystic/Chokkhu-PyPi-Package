@@ -31,7 +31,7 @@ class EDAWrapper:
         """
         if save_reports and save_dir is None:
             save_dir = "chokkhu_outputs/tabular_reports"
-            
+
         return tabular_fn(
             dataset_path=dataset_path,
             target_col=target_col,

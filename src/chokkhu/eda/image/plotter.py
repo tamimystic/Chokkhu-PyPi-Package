@@ -18,9 +18,7 @@ class ImagePlotter:
         self._plot_quality()
 
     def _save_and_close(self, fig, filename):
-        PlotVisualizer.save_and_show(
-            fig, filename, self.save_dir, self.save_reports
-        )
+        PlotVisualizer.save_and_show(fig, filename, self.save_dir, self.save_reports)
         plt.close(fig)
 
     def _plot_structural(self):

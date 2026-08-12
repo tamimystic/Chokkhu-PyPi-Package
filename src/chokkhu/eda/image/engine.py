@@ -58,9 +58,7 @@ class ImageEDA:
         if self.save_reports:
             csv_path = os.path.join(self.save_dir, "image_metrics.csv")
             self.results["df_metrics"].to_csv(csv_path, index=False)
-            Logger.info(
-                f"Image EDA Complete! All reports saved at: {self.save_dir}"
-            )
+            Logger.info(f"Image EDA Complete! All reports saved at: {self.save_dir}")
 
     def _analyze_data(self) -> dict:
         exts = (".png", ".jpg", ".jpeg", ".webp")

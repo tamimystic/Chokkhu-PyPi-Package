@@ -44,7 +44,7 @@ setuptools.setup(
         "matplotlib",
         "seaborn",
         "pandas",
-        "opencv-python",
+        "opencv-python-headless",
         "tqdm",
         "scipy"
     ],
