@@ -1,2 +1,7 @@
-def test_empty():
-    assert True
+import pytest
+import os
+
+def test_integration_dummy():
+    # Simple integration test placeholder
+    dummy_csv_path = os.path.join(os.path.dirname(__file__), '..', 'dummy_data', 'dummy_data.csv')
+    assert os.path.exists(dummy_csv_path)

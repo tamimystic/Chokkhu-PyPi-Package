@@ -1,0 +1,12 @@
+site_name: Chokkhu Documentation
+theme:
+  name: material
+  palette:
+    primary: indigo
+    accent: deep purple
+nav:
+  - Home: index.md
+  - Tabular Examples: example_tabular.md
+  - Image Examples: example_image.md
+plugins:
+  - search

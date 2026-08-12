@@ -204,3 +204,20 @@ class ImagePlotter:
         )
         ax.set_title("Signal-to-Noise Ratio (SNR)")
         self._save_and_close(fig, "4_snr.png")
+
+        # 4. Face Detection (Objects)
+        if "Face_Count" in self.df.columns:
+            fig, ax = plt.subplots(figsize=(10, 6))
+            sns.barplot(
+                data=self.df,
+                x="Class",
+                y="Face_Count",
+                hue="Class",
+                legend=False,
+                palette="pastel",
+                ax=ax,
+                errorbar=None
+            )
+            ax.set_title("Average Face Count per Class (Haar Cascade)")
+            PlotVisualizer.add_bar_labels(ax)
+            self._save_and_close(fig, "4_faces.png")

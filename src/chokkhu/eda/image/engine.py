@@ -12,6 +12,8 @@ from .metadata import MetadataExtractor
 from .plotter import ImagePlotter
 from .quality import QualityAnalyzer
 from .texture import TextureAnalyzer
+from .duplicates import DuplicateDetector
+from .objects import ObjectDetector
 
 
 class ImageEDA:
@@ -58,6 +60,8 @@ class ImageEDA:
         if self.save_reports:
             csv_path = os.path.join(self.save_dir, "image_metrics.csv")
             self.results["df_metrics"].to_csv(csv_path, index=False)
+            from chokkhu.reports.html_builder import HTMLReportBuilder
+            HTMLReportBuilder.build(self.save_dir, title="Chokkhu Image EDA Report")
             Logger.info(f"Image EDA Complete! All reports saved at: {self.save_dir}")
 
     def _analyze_data(self) -> dict:
@@ -99,6 +103,8 @@ class ImageEDA:
                 quality_features = QualityAnalyzer.extract(
                     gray, color_features["Brightness"], color_features["Contrast"]
                 )
+                duplicate_features = DuplicateDetector.extract(gray)
+                object_features = ObjectDetector.extract(gray)
 
                 # Combine all features
                 combined = {
@@ -108,6 +114,8 @@ class ImageEDA:
                     **color_features,
                     **texture_features,
                     **quality_features,
+                    **duplicate_features,
+                    **object_features,
                 }
                 metrics_list.append(combined)
 

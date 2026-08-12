@@ -15,13 +15,13 @@ class MultivariatePlotter(BasePlotter):
         pearson = mult.get("pearson_corr", None)
         if pearson is not None and not pearson.empty:
             print("  Correlation Analysis (Pearson, Spearman)")
-            fig, ax = plt.subplots(figsize=(12, 10))
-            sns.heatmap(
-                pearson, annot=True, cmap="coolwarm", fmt=".2f", center=0, ax=ax
+            # Use clustermap for hierarchical clustering of features
+            g = sns.clustermap(
+                pearson, annot=True, cmap="coolwarm", fmt=".2f", center=0, figsize=(12, 10)
             )
-            ax.set_title("Pearson Correlation Matrix (Linear Relationships)")
+            g.fig.suptitle("Pearson Correlation Matrix (Hierarchical Clustering)", y=1.05)
             PlotVisualizer.save_and_show(
-                fig, "5_pearson_correlation.png", self.save_dir, self.save_reports
+                g.fig, "5_pearson_correlation.png", self.save_dir, self.save_reports
             )
 
         # Spearman Correlation

@@ -95,5 +95,21 @@ class GlobalAnalyzer:
                     ),
                 }
         results["imputation_shift"] = imputation_shift
+        imputation_recommendations = {}
+        for col, pct in missing_density.items():
+            if pct > 30:
+                imputation_recommendations[col] = "Drop column (missing > 30%)"
+            elif col in num_cols:
+                if col in imputation_shift:
+                    shift = imputation_shift[col]
+                    if shift["variance_after_median"] <= shift["variance_after_mean"]:
+                        imputation_recommendations[col] = "Impute with Median"
+                    else:
+                        imputation_recommendations[col] = "Impute with Mean"
+                else:
+                    imputation_recommendations[col] = "Impute with Median"
+            else:
+                imputation_recommendations[col] = "Impute with Mode"
+        results["imputation_recommendations"] = imputation_recommendations
 
         return results
