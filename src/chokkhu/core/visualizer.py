@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 
 import matplotlib.pyplot as plt
@@ -5,6 +7,7 @@ import seaborn as sns
 
 
 class PlotVisualizer:
+
     @staticmethod
     def setup_theme() -> None:
         plt.switch_backend("Agg")

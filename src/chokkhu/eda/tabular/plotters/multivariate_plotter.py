@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
@@ -8,14 +10,12 @@ from .base_plotter import BasePlotter
 
 
 class MultivariatePlotter(BasePlotter):
+
     def plot(self):
         mult = self.results.get("multivariate", {})
-
-        # Pearson Correlation
         pearson = mult.get("pearson_corr", None)
-        if pearson is not None and not pearson.empty:
+        if pearson is not None and (not pearson.empty):
             print("  Correlation Analysis (Pearson, Spearman)")
-            # Use clustermap for hierarchical clustering of features
             g = sns.clustermap(
                 pearson,
                 annot=True,
@@ -30,20 +30,16 @@ class MultivariatePlotter(BasePlotter):
             PlotVisualizer.save_and_show(
                 g.fig, "5_pearson_correlation.png", self.save_dir, self.save_reports
             )
-
-        # Spearman Correlation
         spearman = mult.get("spearman_corr", None)
-        if spearman is not None and not spearman.empty:
+        if spearman is not None and (not spearman.empty):
             fig, ax = plt.subplots(figsize=(12, 10))
             sns.heatmap(spearman, annot=True, cmap="mako", fmt=".2f", center=0, ax=ax)
             ax.set_title("Spearman Correlation Matrix (Non-Linear Monotonic)")
             PlotVisualizer.save_and_show(
                 fig, "5_spearman_correlation.png", self.save_dir, self.save_reports
             )
-
-        # Cramer's V
         cramers = mult.get("cramers_v_matrix", None)
-        if cramers is not None and not cramers.empty:
+        if cramers is not None and (not cramers.empty):
             print("  Association Analysis (Cramer's V, Mutual Information)")
             fig, ax = plt.subplots(figsize=(12, 10))
             sns.heatmap(cramers, annot=True, cmap="YlGnBu", fmt=".2f", ax=ax)
@@ -51,8 +47,6 @@ class MultivariatePlotter(BasePlotter):
             PlotVisualizer.save_and_show(
                 fig, "5_cramers_v.png", self.save_dir, self.save_reports
             )
-
-        # VIF
         vif = mult.get("vif", {})
         if vif:
             print("  Multicollinearity Analysis (VIF)")
@@ -79,8 +73,6 @@ class MultivariatePlotter(BasePlotter):
             PlotVisualizer.save_and_show(
                 fig, "5_vif.png", self.save_dir, self.save_reports
             )
-
-        # Mutual Information
         mi = mult.get("mutual_information", {})
         if mi:
             mi_df = pd.DataFrame(
@@ -102,8 +94,6 @@ class MultivariatePlotter(BasePlotter):
             PlotVisualizer.save_and_show(
                 fig, "5_mutual_information.png", self.save_dir, self.save_reports
             )
-
-        # Dataset Drift (PSI)
         psi = mult.get("dataset_drift_psi", {})
         if psi:
             print("  Data Drift & Stability (PSI)")
@@ -128,12 +118,10 @@ class MultivariatePlotter(BasePlotter):
             PlotVisualizer.save_and_show(
                 fig, "5_dataset_drift.png", self.save_dir, self.save_reports
             )
-
-        # PCA
         pca_1 = mult.get("pca_1", None)
         pca_2 = mult.get("pca_2", None)
         pca_index = mult.get("pca_index", None)
-        if pca_1 is not None and pca_2 is not None and pca_index is not None:
+        if pca_1 is not None and pca_2 is not None and (pca_index is not None):
             print("  Dimensionality Reduction (PCA)")
             fig, ax = plt.subplots(figsize=(10, 8))
             if self.target_col and self.target_col in self.df.columns:
@@ -157,11 +145,7 @@ class MultivariatePlotter(BasePlotter):
                     cbar.set_label(self.target_col)
                 else:
                     sns.scatterplot(
-                        x=pca_1,
-                        y=pca_2,
-                        hue=target_data,
-                        palette="tab10",
-                        ax=ax,
+                        x=pca_1, y=pca_2, hue=target_data, palette="tab10", ax=ax
                     )
             else:
                 sns.scatterplot(x=pca_1, y=pca_2, color="purple", ax=ax)
@@ -169,8 +153,6 @@ class MultivariatePlotter(BasePlotter):
             PlotVisualizer.save_and_show(
                 fig, "5_pca_embedding.png", self.save_dir, self.save_reports
             )
-
-        # Mahalanobis Distance Outliers
         mahal = mult.get("mahalanobis_outliers", {})
         if mahal and mahal.get("count", 0) > 0:
             print(

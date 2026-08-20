@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Tuple
 
 import numpy as np
@@ -30,6 +32,7 @@ from .scaling import (
 
 
 class PreprocessorState:
+
     def __init__(self):
         self.scalers = {}
         self.encoders = {}
@@ -100,7 +103,7 @@ def preprocess(
                 state.encoders[col] = enc
             elif encode == "onehot":
                 enc = OneHotEncoder(
-                    drop_first=(onehot_drop == "first"),
+                    drop_first=onehot_drop == "first",
                     max_categories=onehot_max_categories,
                 ).fit(features_df[col])
                 encoded_df = enc.transform(features_df[col], prefix=col)
@@ -165,7 +168,7 @@ def preprocess(
         features_df[target] = target_series
     if verbose:
         Logger.info(f"Preprocessed features: {data.shape} -> {features_df.shape}")
-    return features_df, state
+    return (features_df, state)
 
 
 __all__ = [

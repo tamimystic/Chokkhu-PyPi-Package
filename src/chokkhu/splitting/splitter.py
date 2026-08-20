@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Any, Generator
 
 import numpy as np
@@ -18,7 +20,6 @@ def train_test_split(
     n = len(X)
     is_df = isinstance(X, pd.DataFrame)
     is_series = isinstance(y, (pd.Series, pd.DataFrame))
-
     if stratify and y is not None:
         y_arr = np.asarray(y)
         classes = np.unique(y_arr)
@@ -56,28 +57,25 @@ def train_test_split(
             test_idx = indices[:n_test]
             train_idx = indices[n_test:]
             val_idx = None
-
     if is_df:
-        X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
+        X_train, X_test = (X.iloc[train_idx], X.iloc[test_idx])
         X_val = X.iloc[val_idx] if val_idx is not None else None
     else:
-        X_train, X_test = X[train_idx], X[test_idx]
+        X_train, X_test = (X[train_idx], X[test_idx])
         X_val = X[val_idx] if val_idx is not None else None
-
     if y is not None:
         if is_series:
-            y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
+            y_train, y_test = (y.iloc[train_idx], y.iloc[test_idx])
             y_val = y.iloc[val_idx] if val_idx is not None else None
         else:
-            y_train, y_test = y[train_idx], y[test_idx]
+            y_train, y_test = (y[train_idx], y[test_idx])
             y_val = y[val_idx] if val_idx is not None else None
         if val_size is not None:
-            return X_train, X_val, X_test, y_train, y_val, y_test
-        return X_train, X_test, y_train, y_test
-
+            return (X_train, X_val, X_test, y_train, y_val, y_test)
+        return (X_train, X_test, y_train, y_test)
     if val_size is not None:
-        return X_train, X_val, X_test
-    return X_train, X_test
+        return (X_train, X_val, X_test)
+    return (X_train, X_test)
 
 
 def kfold(
@@ -93,7 +91,6 @@ def kfold(
     n = len(X)
     is_df = isinstance(X, pd.DataFrame)
     is_series = isinstance(y, (pd.Series, pd.DataFrame))
-
     if stratified and y is not None:
         y_arr = np.asarray(y)
         classes = np.unique(y_arr)
@@ -109,29 +106,24 @@ def kfold(
         if shuffle:
             np.random.shuffle(indices)
         folds = [list(indices[i::k]) for i in range(k)]
-
     for i in range(k):
         val_idx = np.array(folds[i])
         train_idx = np.concatenate([np.array(folds[j]) for j in range(k) if j != i])
         if is_df:
-            X_tr, X_va = X.iloc[train_idx], X.iloc[val_idx]
+            X_tr, X_va = (X.iloc[train_idx], X.iloc[val_idx])
         else:
-            X_tr, X_va = X[train_idx], X[val_idx]
+            X_tr, X_va = (X[train_idx], X[val_idx])
         if y is not None:
             if is_series:
-                y_tr, y_va = y.iloc[train_idx], y.iloc[val_idx]
+                y_tr, y_va = (y.iloc[train_idx], y.iloc[val_idx])
             else:
-                y_tr, y_va = y[train_idx], y[val_idx]
-            yield X_tr, X_va, y_tr, y_va
+                y_tr, y_va = (y[train_idx], y[val_idx])
+            yield (X_tr, X_va, y_tr, y_va)
         else:
-            yield X_tr, X_va
+            yield (X_tr, X_va)
 
 
-def time_series_split(
-    X: Any,
-    y: Any = None,
-    n_splits: int = 5,
-) -> Generator:
+def time_series_split(X: Any, y: Any = None, n_splits: int = 5) -> Generator:
     n = len(X)
     fold_size = n // (n_splits + 1)
     is_df = isinstance(X, pd.DataFrame)
@@ -141,14 +133,14 @@ def time_series_split(
         val_start = train_end
         val_end = min(val_start + fold_size, n)
         if is_df:
-            X_tr, X_va = X.iloc[:train_end], X.iloc[val_start:val_end]
+            X_tr, X_va = (X.iloc[:train_end], X.iloc[val_start:val_end])
         else:
-            X_tr, X_va = X[:train_end], X[val_start:val_end]
+            X_tr, X_va = (X[:train_end], X[val_start:val_end])
         if y is not None:
             if is_series:
-                y_tr, y_va = y.iloc[:train_end], y.iloc[val_start:val_end]
+                y_tr, y_va = (y.iloc[:train_end], y.iloc[val_start:val_end])
             else:
-                y_tr, y_va = y[:train_end], y[val_start:val_end]
-            yield X_tr, X_va, y_tr, y_va
+                y_tr, y_va = (y[:train_end], y[val_start:val_end])
+            yield (X_tr, X_va, y_tr, y_va)
         else:
-            yield X_tr, X_va
+            yield (X_tr, X_va)

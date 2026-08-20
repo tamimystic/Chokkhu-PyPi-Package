@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .cleaning import clean
 from .eda import ImageEDA, image
 from .eda import tabular as tabular_fn
@@ -7,6 +9,7 @@ from .splitting import split
 
 
 class EDAWrapper:
+
     @staticmethod
     def image(dataset_path: str, save_reports: bool = False, save_dir: str = None):
         if save_reports and save_dir is None:
@@ -33,5 +36,4 @@ class EDAWrapper:
 
 
 eda = EDAWrapper()
-
 __all__ = ["eda", "load", "save", "clean", "preprocess", "split"]

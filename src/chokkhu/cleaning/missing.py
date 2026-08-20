@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -24,7 +26,7 @@ def _knn_impute_col(df: pd.DataFrame, col: str, k: int = 5) -> pd.Series:
             continue
         dists = np.linalg.norm(X_complete - row_feat.values, axis=1)
         k_nearest = np.argsort(dists)[: min(k, len(dists))]
-        weights = 1.0 / (dists[k_nearest] + 1e-8)
+        weights = 1.0 / (dists[k_nearest] + 1e-08)
         s.loc[idx] = np.average(y_complete[k_nearest], weights=weights)
     return s
 
@@ -69,7 +71,7 @@ def handle_missing(
     if strategy is None:
         return df
     if strategy == "drop_cols":
-        return df.loc[:, (df.isna().mean() <= threshold)]
+        return df.loc[:, df.isna().mean() <= threshold]
     if strategy == "drop_rows":
         return df.dropna()
     if strategy == "iterative":

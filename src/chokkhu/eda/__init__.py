@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .image.engine import ImageEDA
 from .tabular.engine import tabular
 

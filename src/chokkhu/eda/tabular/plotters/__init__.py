@@ -1,1 +1,1 @@
-# Empty init to mark this as a package
+from __future__ import annotations

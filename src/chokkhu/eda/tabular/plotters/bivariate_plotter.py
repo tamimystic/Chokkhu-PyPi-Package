@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -9,10 +11,9 @@ from .base_plotter import BasePlotter
 
 
 class BivariatePlotter(BasePlotter):
+
     def plot(self):
         biv = self.results.get("bivariate", {})
-
-        # Cat vs Cat
         cat_vs_cat = biv.get("cat_vs_cat", {})
         if cat_vs_cat:
             print("\n  Categorical vs Categorical Analysis")
@@ -32,8 +33,6 @@ class BivariatePlotter(BasePlotter):
                     self.save_dir,
                     self.save_reports,
                 )
-
-        # Cat vs Num
         cat_vs_num = biv.get("cat_vs_num", {})
         if cat_vs_num:
             print("\n  Categorical vs Numerical Analysis")
@@ -41,7 +40,6 @@ class BivariatePlotter(BasePlotter):
             cat = data["cat"]
             num = data["num"]
             fig, ax = plt.subplots(figsize=(10, 6))
-
             import warnings
 
             with warnings.catch_warnings():
@@ -60,26 +58,21 @@ class BivariatePlotter(BasePlotter):
             PlotVisualizer.save_and_show(
                 fig, f"4_cat_vs_num_{pair_name}.png", self.save_dir, self.save_reports
             )
-
-        # Num vs Num
         num_vs_num = biv.get("num_vs_num", {})
         if num_vs_num:
             print("\n  Numerical vs Numerical Analysis")
-
-        # Determine a hue column for JointPlot
         hue_col = None
         univ = self.results.get("univariate", {})
         if (
             self.target_col
             and self.target_col in self.df.columns
-            and self.df[self.target_col].nunique() < 10
+            and (self.df[self.target_col].nunique() < 10)
         ):
             hue_col = self.target_col
         else:
             ordinal_cols = list(univ.get("ordinal_stats", {}).keys())
             if ordinal_cols:
                 hue_col = ordinal_cols[0]
-
         for pair_name, data in num_vs_num.items():
             n1 = data["n1"]
             n2 = data["n2"]
@@ -107,12 +100,9 @@ class BivariatePlotter(BasePlotter):
             PlotVisualizer.save_and_show(
                 g.fig, f"4_num_vs_num_{pair_name}.png", self.save_dir, self.save_reports
             )
-
         target_analysis = biv.get("target_analysis", {})
         if target_analysis:
             print("\n  Target vs All Features Analysis (IV, WoE, T-Test)")
-
-        # Information Value (IV)
         iv_res = target_analysis.get("information_value", {})
         if iv_res:
             iv_df = pd.DataFrame(
@@ -136,14 +126,11 @@ class BivariatePlotter(BasePlotter):
             PlotVisualizer.save_and_show(
                 fig, "4_iv_predictive_power.png", self.save_dir, self.save_reports
             )
-
-        # ANOVA F-Stats equivalent representation (p-values)
         anova = target_analysis.get("categorical_vs_target_anova", {})
         if anova:
             features = list(anova.keys())
             p_vals = [anova[f]["anova_p"] for f in features]
-            # Plot -log10(p_value) for better visualization
-            log_p = [-np.log10(p + 1e-9) for p in p_vals]
+            log_p = [-np.log10(p + 1e-09) for p in p_vals]
             fig, ax = plt.subplots(figsize=(12, 6))
             sns.barplot(
                 x=features, y=log_p, hue=features, legend=False, palette="magma", ax=ax
@@ -154,19 +141,16 @@ class BivariatePlotter(BasePlotter):
             ax.set_ylabel("-log10(p-value)")
             ax.tick_params(axis="x", rotation=45)
             self._add_bar_labels(ax)
-            # Add significance line at p=0.05
             ax.axhline(y=-np.log10(0.05), color="r", linestyle="--", label="p=0.05")
             ax.legend()
             PlotVisualizer.save_and_show(
                 fig, "4_anova_significance.png", self.save_dir, self.save_reports
             )
-
-        # T-Test Representation
         t_tests = target_analysis.get("numerical_vs_target_ttest", {})
         if t_tests:
             features = list(t_tests.keys())
             p_vals = [t_tests[f]["p_val"] for f in features]
-            log_p = [-np.log10(p + 1e-9) for p in p_vals]
+            log_p = [-np.log10(p + 1e-09) for p in p_vals]
             fig, ax = plt.subplots(figsize=(12, 6))
             sns.barplot(
                 x=features,

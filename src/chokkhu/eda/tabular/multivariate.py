@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Any, Dict
 
 import numpy as np
@@ -8,22 +10,18 @@ from chokkhu.eda.tabular.univariate import UnivariateAnalyzer
 
 
 class MultivariateAnalyzer:
-    """
-    Phase 4: Multivariate Analysis
-    Handles multi-feature interactions, correlations, PCA, MI, and Dataset Drift.
-    """
 
     @staticmethod
     def _cramers_v(confusion_matrix: pd.DataFrame) -> tuple:
         chi2, p_val, _, _ = stats.chi2_contingency(confusion_matrix)
         n = confusion_matrix.sum().sum()
         if n == 0:
-            return 0.0, 1.0
+            return (0.0, 1.0)
         r, k = confusion_matrix.shape
         min_dim = min(k - 1, r - 1)
         if min_dim == 0:
-            return 0.0, 1.0
-        return np.sqrt(chi2 / (n * min_dim)), p_val
+            return (0.0, 1.0)
+        return (np.sqrt(chi2 / (n * min_dim)), p_val)
 
     @staticmethod
     def _mutual_information(x: pd.Series, y: pd.Series) -> float:
@@ -31,7 +29,6 @@ class MultivariateAnalyzer:
         p_xy = c_xy / c_xy.sum().sum()
         p_x = p_xy.sum(axis=1)
         p_y = p_xy.sum(axis=0)
-
         mi = 0.0
         for i in p_xy.index:
             for j in p_xy.columns:
@@ -41,7 +38,6 @@ class MultivariateAnalyzer:
 
     @staticmethod
     def _psi(expected: pd.Series, actual: pd.Series, buckets: int = 10) -> float:
-        # Population Stability Index between two series
         if pd.api.types.is_numeric_dtype(expected):
             bins = pd.qcut(expected, q=buckets, retbins=True, duplicates="drop")[1]
             exp_counts = pd.cut(expected, bins=bins).value_counts(normalize=True)
@@ -49,7 +45,6 @@ class MultivariateAnalyzer:
         else:
             exp_counts = expected.value_counts(normalize=True)
             act_counts = actual.value_counts(normalize=True)
-
         psi = 0.0
         for idx in exp_counts.index:
             e_val = exp_counts.get(idx, 0.0001)
@@ -65,21 +60,13 @@ class MultivariateAnalyzer:
     def analyze(df: pd.DataFrame, target_col: str = None) -> Dict[str, Any]:
         results: Dict[str, Any] = {}
         types = UnivariateAnalyzer.infer_data_types(df)
-
         numerical = types["numerical"]["discrete"] + types["numerical"]["continuous"]
         categorical = types["categorical"]["ordinal"] + types["categorical"]["nominal"]
-
-        # ---------------------------------------------------------
-        # 3.1 Numerical Correlations & VIF
-        # ---------------------------------------------------------
         if len(numerical) > 1:
             num_df = df[numerical].dropna()
             if not num_df.empty:
-                # Pearson & Spearman
                 results["pearson_corr"] = num_df.corr(method="pearson")
                 results["spearman_corr"] = num_df.corr(method="spearman")
-
-                # VIF (Scratch Implementation using inverse correlation matrix)
                 corr_matrix = num_df.corr().values
                 try:
                     inv_corr = np.linalg.inv(corr_matrix)
@@ -87,30 +74,21 @@ class MultivariateAnalyzer:
                     results["vif"] = dict(zip(num_df.columns, vif))
                 except np.linalg.LinAlgError:
                     results["vif"] = {}
-
-                # Mahalanobis Distance for Multivariate Outliers
                 try:
                     df_c = num_df - num_df.mean()
                     cov = np.cov(num_df.T)
                     inv_cov = np.linalg.inv(cov)
                     left = np.dot(df_c, inv_cov)
                     mahal = np.dot(left, df_c.T).diagonal()
-
-                    # Outlier threshold using Chi-Square distribution (p=0.01)
-                    # For df = len(numerical), critical value ~ stats.chi2.ppf(0.99, df=len(numerical))
                     threshold = stats.chi2.ppf(0.99, df=len(numerical))
                     outliers_idx = np.where(mahal > threshold)[0]
                     results["mahalanobis_outliers"] = {
                         "count": len(outliers_idx),
-                        "percentage": (len(outliers_idx) / len(num_df)) * 100,
+                        "percentage": len(outliers_idx) / len(num_df) * 100,
                         "distances": mahal.tolist(),
                     }
                 except Exception:
                     results["mahalanobis_outliers"] = {}
-
-        # ---------------------------------------------------------
-        # 3.3 Categorical Associations (Cramer's V & MI)
-        # ---------------------------------------------------------
         if len(categorical) > 1:
             cat_df = df[categorical].dropna()
             cramers_matrix = pd.DataFrame(
@@ -123,7 +101,6 @@ class MultivariateAnalyzer:
                 index=categorical,
                 columns=categorical,
             )
-
             for i, col1 in enumerate(categorical):
                 for j, col2 in enumerate(categorical):
                     if i < j:
@@ -135,20 +112,16 @@ class MultivariateAnalyzer:
                         chi2_pvals.loc[col2, col1] = pval
             results["cramers_v_matrix"] = cramers_matrix
             results["chi2_pvalues"] = chi2_pvals
-
         if target_col and target_col in df.columns:
             mi_results = {}
-            # We bin numeric features to 10 bins to calculate MI
             for col in df.columns:
                 if col == target_col:
                     continue
-
                 x = df[col]
                 if pd.api.types.is_numeric_dtype(x) and x.nunique() > 10:
                     x = pd.qcut(x, q=10, duplicates="drop").astype(str)
                 else:
                     x = x.astype(str)
-
                 y = df[target_col].astype(str)
                 valid = pd.DataFrame({"x": x, "y": y}).dropna()
                 if not valid.empty:
@@ -156,37 +129,24 @@ class MultivariateAnalyzer:
                         valid["x"], valid["y"]
                     )
             results["mutual_information"] = mi_results
-
-        # ---------------------------------------------------------
-        # 3.4 PCA (Deep Embedding)
-        # ---------------------------------------------------------
         if len(numerical) >= 2:
             num_df = df[numerical].dropna()
             if len(num_df) > 5:
-                # Standardize
-                standardized = (num_df - num_df.mean()) / (num_df.std() + 1e-9)
+                standardized = (num_df - num_df.mean()) / (num_df.std() + 1e-09)
                 cov_matrix = np.cov(standardized.T)
                 eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
-                # Sort by eigenvalues
                 idx = eigenvalues.argsort()[::-1]
                 eigenvectors = eigenvectors[:, idx]
-                # Project to 2D
                 pca_2d = standardized.dot(eigenvectors[:, :2])
                 results["pca_1"] = pca_2d.iloc[:, 0].tolist()
                 results["pca_2"] = pca_2d.iloc[:, 1].tolist()
                 results["pca_index"] = pca_2d.index.tolist()
-
-        # ---------------------------------------------------------
-        # 3.5 Dataset Drift (PSI Approximation via Random Split)
-        # ---------------------------------------------------------
-        # For EDA on a single dataset, we simulate drift by splitting 50/50 randomly
         drift_results = {}
         if len(df) > 100:
             df_shuffled = df.sample(frac=1, random_state=42)
             half = len(df_shuffled) // 2
             expected_df = df_shuffled.iloc[:half]
             actual_df = df_shuffled.iloc[half:]
-
             for col in df.columns:
                 try:
                     drift_results[col] = MultivariateAnalyzer._psi(
@@ -195,5 +155,4 @@ class MultivariateAnalyzer:
                 except Exception:
                     pass
         results["dataset_drift_psi"] = drift_results
-
         return results

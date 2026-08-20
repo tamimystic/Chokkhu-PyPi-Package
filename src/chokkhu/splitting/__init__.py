@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Generator, Tuple, Union
 
 import numpy as np
@@ -22,15 +24,16 @@ def split(
     n_splits: int = 5,
     verbose: bool = True,
 ):
-    if isinstance(data, dict) and "X" in data and "y" in data:
-        X, y = data["X"], data["y"]
+    if isinstance(data, dict) and "X" in data and ("y" in data):
+        X, y = (data["X"], data["y"])
     elif (
-        isinstance(data, pd.DataFrame) and target is not None and target in data.columns
+        isinstance(data, pd.DataFrame)
+        and target is not None
+        and (target in data.columns)
     ):
-        X, y = data.drop(columns=[target]), data[target]
+        X, y = (data.drop(columns=[target]), data[target])
     else:
-        X, y = data, None
-
+        X, y = (data, None)
     if cv is not None:
         if verbose:
             Logger.info(f"Generated {cv}-fold cross-validation generator.")

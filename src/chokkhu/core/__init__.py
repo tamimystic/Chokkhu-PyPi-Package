@@ -1,1 +1,1 @@
-# Core utilities and shared configuration for Chokkhu
+from __future__ import annotations

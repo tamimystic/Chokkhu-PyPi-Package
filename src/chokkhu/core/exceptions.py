@@ -1,16 +1,13 @@
-class ChokkhuError(Exception):
-    """Base exception class for Chokkhu package."""
+from __future__ import annotations
 
+
+class ChokkhuError(Exception):
     pass
 
 
 class DataLoadError(ChokkhuError):
-    """Raised when there is an issue loading the dataset."""
-
     pass
 
 
 class InvalidFormatError(ChokkhuError):
-    """Raised when an unsupported file format is provided."""
-
     pass

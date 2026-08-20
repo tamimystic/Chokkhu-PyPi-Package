@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 
 
 class LabelEncoder:
+
     def __init__(self):
         self.mapping = {}
         self.inverse_mapping = {}
@@ -24,6 +27,7 @@ class LabelEncoder:
 
 
 class OneHotEncoder:
+
     def __init__(self, drop_first=True, max_categories=20):
         self.drop_first = drop_first
         self.max_categories = max_categories
@@ -47,6 +51,7 @@ class OneHotEncoder:
 
 
 class TargetEncoder:
+
     def __init__(self, smoothing=10):
         self.smoothing = smoothing
         self.mapping = {}
@@ -71,6 +76,7 @@ class TargetEncoder:
 
 
 class FrequencyEncoder:
+
     def __init__(self):
         self.mapping = {}
 
@@ -86,6 +92,7 @@ class FrequencyEncoder:
 
 
 class BinaryEncoder:
+
     def __init__(self):
         self.label_map = {}
         self.n_bits = 0
@@ -100,7 +107,7 @@ class BinaryEncoder:
         mapped = s.map(lambda x: self.label_map.get(x, 0)).values
         df_res = pd.DataFrame(index=s.index)
         for bit in range(self.n_bits):
-            df_res[f"{prefix}_bit_{bit}"] = ((mapped >> bit) & 1).astype(int)
+            df_res[f"{prefix}_bit_{bit}"] = (mapped >> bit & 1).astype(int)
         return df_res
 
     def fit_transform(self, s: pd.Series, prefix: str):
@@ -108,6 +115,7 @@ class BinaryEncoder:
 
 
 class OrdinalEncoder:
+
     def __init__(self, order_dict=None):
         self.order_dict = order_dict or {}
 

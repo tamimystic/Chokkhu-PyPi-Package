@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -5,6 +7,7 @@ from chokkhu.core.visualizer import PlotVisualizer
 
 
 class ImagePlotter:
+
     def __init__(self, df, results: dict, save_dir: str, save_reports: bool):
         self.df = df
         self.results = results
@@ -22,11 +25,9 @@ class ImagePlotter:
         plt.close(fig)
 
     def _plot_structural(self):
-        # 1. Class Distribution
         fig, ax = plt.subplots(figsize=(10, 6))
         class_counts = self.df["Class"].value_counts().reset_index()
         class_counts.columns = ["Class", "Count"]
-
         sns.barplot(
             data=class_counts,
             x="Class",
@@ -40,8 +41,6 @@ class ImagePlotter:
         ax.set_title("Class-wise Distribution")
         ax.tick_params(axis="x", rotation=45)
         self._save_and_close(fig, "1_class_distribution.png")
-
-        # 2. Aspect Ratio Profiling
         fig, ax = plt.subplots(figsize=(10, 6))
         sns.histplot(
             data=self.df,
@@ -53,8 +52,6 @@ class ImagePlotter:
         )
         ax.set_title("Aspect Ratio Profiling")
         self._save_and_close(fig, "1_aspect_ratio.png")
-
-        # 3. File Storage Size
         fig, ax = plt.subplots(figsize=(10, 6))
         sns.boxplot(
             data=self.df,
@@ -69,10 +66,8 @@ class ImagePlotter:
         self._save_and_close(fig, "1_file_size.png")
 
     def _plot_color(self):
-        # 1. Color Intensity
         fig, ax = plt.subplots(figsize=(10, 6))
         avg_hist = self.results.get("avg_rgb_hist")
-
         if avg_hist is not None:
             for i, col in enumerate(["red", "green", "blue"]):
                 ax.plot(avg_hist[:, i], color=col, label=f"{col.upper()}")
@@ -80,8 +75,6 @@ class ImagePlotter:
         ax.set_title("Color Intensity Histograms")
         ax.legend()
         self._save_and_close(fig, "2_color_intensity.png")
-
-        # 2. Brightness
         fig, ax = plt.subplots(figsize=(10, 6))
         sns.violinplot(
             data=self.df,
@@ -94,8 +87,6 @@ class ImagePlotter:
         )
         ax.set_title("Brightness Distribution")
         self._save_and_close(fig, "2_brightness.png")
-
-        # 3. Contrast
         fig, ax = plt.subplots(figsize=(10, 6))
         sns.violinplot(
             data=self.df,
@@ -110,7 +101,6 @@ class ImagePlotter:
         self._save_and_close(fig, "2_contrast.png")
 
     def _plot_texture(self):
-        # 1. GLCM Contrast
         fig, ax = plt.subplots(figsize=(10, 6))
         sns.boxplot(
             data=self.df,
@@ -123,8 +113,6 @@ class ImagePlotter:
         )
         ax.set_title("Texture (GLCM Contrast)")
         self._save_and_close(fig, "3_texture_contrast.png")
-
-        # 2. Edge Density
         fig, ax = plt.subplots(figsize=(10, 6))
         sns.boxplot(
             data=self.df,
@@ -137,8 +125,6 @@ class ImagePlotter:
         )
         ax.set_title("Structural Complexity (Edge Density)")
         self._save_and_close(fig, "3_edge_density.png")
-
-        # 3. GLCM Homogeneity
         fig, ax = plt.subplots(figsize=(10, 6))
         sns.boxplot(
             data=self.df,
@@ -151,8 +137,6 @@ class ImagePlotter:
         )
         ax.set_title("Texture (GLCM Homogeneity)")
         self._save_and_close(fig, "3_texture_homogeneity.png")
-
-        # 4. Average Images
         avg_imgs = self.results.get("avg_images", {})
         for class_name, img in avg_imgs.items():
             fig, ax = plt.subplots(figsize=(6, 6))
@@ -162,7 +146,6 @@ class ImagePlotter:
             self._save_and_close(fig, f"3_avg_image_{class_name}.png")
 
     def _plot_quality(self):
-        # 1. Shannon Entropy
         fig, ax = plt.subplots(figsize=(10, 6))
         sns.boxplot(
             data=self.df,
@@ -175,8 +158,6 @@ class ImagePlotter:
         )
         ax.set_title("Shannon Entropy (Information Density)")
         self._save_and_close(fig, "4_entropy.png")
-
-        # 2. Blur Score
         fig, ax = plt.subplots(figsize=(10, 6))
         sns.boxplot(
             data=self.df,
@@ -190,8 +171,6 @@ class ImagePlotter:
         ax.set_yscale("log")
         ax.set_title("Degradation (Blur/Sharpness)")
         self._save_and_close(fig, "4_blur.png")
-
-        # 3. SNR
         fig, ax = plt.subplots(figsize=(10, 6))
         sns.boxplot(
             data=self.df,
@@ -204,8 +183,6 @@ class ImagePlotter:
         )
         ax.set_title("Signal-to-Noise Ratio (SNR)")
         self._save_and_close(fig, "4_snr.png")
-
-        # 4. Face Detection (Objects)
         if "Face_Count" in self.df.columns:
             fig, ax = plt.subplots(figsize=(10, 6))
             sns.barplot(

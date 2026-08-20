@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import glob
 import os
 
@@ -48,7 +50,7 @@ def _load_images(
         [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
     )
     class_names = subdirs if subdirs else ["default"]
-    images, labels, file_paths = [], [], []
+    images, labels, file_paths = ([], [], [])
     for idx, class_name in enumerate(class_names):
         folder = os.path.join(path, class_name) if subdirs else path
         files = sorted(
@@ -68,8 +70,7 @@ def _load_images(
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             if img_size is not None:
                 img = cv2.resize(
-                    img,
-                    (img_size[1], img_size[0]) if len(img_size) == 2 else img_size,
+                    img, (img_size[1], img_size[0]) if len(img_size) == 2 else img_size
                 )
             if normalize:
                 img = img.astype(np.float32) / 255.0

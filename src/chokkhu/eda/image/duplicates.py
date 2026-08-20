@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import cv2
 import numpy as np
 
 
 class DuplicateDetector:
+
     @staticmethod
     def _phash(img_gray):
         resized = cv2.resize(img_gray, (32, 32))

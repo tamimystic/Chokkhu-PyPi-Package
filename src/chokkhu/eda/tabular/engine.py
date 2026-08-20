@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import os
 from typing import Any, Dict
@@ -23,17 +25,14 @@ def tabular(
     if isinstance(dataset_path, pd.DataFrame):
         df = dataset_path
         dataset_path = None
-
     if isinstance(df, str):
         dataset_path = df
         df = None
-
     if df is None and dataset_path is not None:
         if dataset_path.endswith(".csv"):
             import codecs
 
             try:
-                # Basic encoding check simulating chardet
                 with codecs.open(
                     dataset_path, "r", encoding="utf-8", errors="strict"
                 ) as f:
@@ -57,6 +56,7 @@ def tabular(
 
 
 class TabularEDAEngine:
+
     def __init__(
         self,
         df: pd.DataFrame,
@@ -68,7 +68,6 @@ class TabularEDAEngine:
             raise TypeError("Dataset must be a pandas DataFrame.")
         if df.empty:
             raise ValueError("DataFrame is empty.")
-
         self.df = df
         self.save_reports = save_reports
         self.save_dir = save_dir
@@ -79,12 +78,9 @@ class TabularEDAEngine:
         if self.save_reports:
             os.makedirs(self.save_dir, exist_ok=True)
             Logger.info(f"Reports will be saved to {self.save_dir}")
-
         Logger.info("Executing Phase 0: Global Dataset Profiling...")
         self.results["global_eda"] = GlobalAnalyzer.analyze(self.df)
-
         self.results["univariate"] = UnivariateAnalyzer.analyze(self.df)
-
         type_mapping = self.results["univariate"]["type_mapping"]
         print("\nData Type Classification:")
         print("Categorical Data:")
@@ -96,7 +92,6 @@ class TabularEDAEngine:
         print("Specialized Data:")
         print(f"  DateTime: {type_mapping['specialized']['datetime']}")
         print(f"  Text: {type_mapping['specialized']['text']}\n")
-
         self.results["bivariate"] = BivariateAnalyzer.analyze(self.df, self.target_col)
         self.results["multivariate"] = MultivariateAnalyzer.analyze(
             self.df, self.target_col
@@ -109,20 +104,17 @@ class TabularEDAEngine:
             target_col=self.target_col,
         )
         plotter.plot_all()
-
         if self.save_reports:
             self._save_json()
             from chokkhu.reports.html_builder import HTMLReportBuilder
 
             HTMLReportBuilder.build(self.save_dir, title="Chokkhu Tabular EDA Report")
-
         Logger.info("Tabular EDA Pipeline completed successfully.")
         return self.results
 
     def _save_json(self):
         json_path = os.path.join(self.save_dir, "eda_summary.json")
         try:
-            # Clean up DataFrame/Series objects before saving
             clean_results = self._sanitize_dict(self.results)
             with open(json_path, "w") as f:
                 json.dump(clean_results, f, indent=4)
@@ -145,7 +137,6 @@ class TabularEDAEngine:
                 sanitized[k] = v.tolist()
             else:
                 try:
-                    # Quick check if it's naturally serializable
                     json.dumps(v)
                     sanitized[k] = v
                 except (TypeError, OverflowError):

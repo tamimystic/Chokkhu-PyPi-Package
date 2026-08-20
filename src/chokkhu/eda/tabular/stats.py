@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import pandas as pd
 
 
 class TabularStats:
+
     @staticmethod
     def extract(df: pd.DataFrame) -> dict:
-        """Extracts basic statistical metadata and correlation."""
         results = {
             "shape": df.shape,
             "dtypes": df.dtypes,
@@ -20,5 +22,4 @@ class TabularStats:
             results["correlation"] = df[results["numerical_cols"]].corr()
         else:
             results["correlation"] = pd.DataFrame()
-
         return results

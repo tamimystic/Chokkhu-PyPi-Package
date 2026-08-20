@@ -1,1 +1,1 @@
-# Init file for reports
+from __future__ import annotations

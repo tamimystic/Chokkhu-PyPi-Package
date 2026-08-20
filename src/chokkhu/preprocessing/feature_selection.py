@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 from scipy import stats
 
 
 class VarianceThresholdSelector:
+
     def __init__(self, threshold=0.01):
         self.threshold = threshold
         self.selected_columns = []
@@ -25,6 +28,7 @@ class VarianceThresholdSelector:
 
 
 class CorrelationFilterSelector:
+
     def __init__(self, threshold=0.95):
         self.threshold = threshold
         self.dropped_columns = []
@@ -63,6 +67,7 @@ class CorrelationFilterSelector:
 
 
 class MutualInfoSelector:
+
     def __init__(self, k=10):
         self.k = k
         self.selected_columns = []
@@ -106,6 +111,7 @@ class MutualInfoSelector:
 
 
 class ANOVASelector:
+
     def __init__(self, k=10):
         self.k = k
         self.selected_columns = []

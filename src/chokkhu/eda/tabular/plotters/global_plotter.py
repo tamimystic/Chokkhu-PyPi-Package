@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
@@ -8,10 +10,9 @@ from .base_plotter import BasePlotter
 
 
 class GlobalPlotter(BasePlotter):
+
     def plot(self):
         global_res = self.results.get("global_eda", {})
-
-        # Metadata: Data Types
         dtypes = global_res.get("dtype_profiling", {})
         if dtypes:
             fig, ax = plt.subplots(figsize=(10, 6))
@@ -30,8 +31,6 @@ class GlobalPlotter(BasePlotter):
             PlotVisualizer.save_and_show(
                 fig, "0_global_dtypes.png", self.save_dir, self.save_reports
             )
-
-        # Missing Data Matrix
         missing_matrix = global_res.get("missing_matrix", pd.DataFrame())
         if not missing_matrix.empty:
             fig, ax = plt.subplots(figsize=(12, 8))
@@ -42,10 +41,8 @@ class GlobalPlotter(BasePlotter):
             PlotVisualizer.save_and_show(
                 fig, "0_missing_matrix.png", self.save_dir, self.save_reports
             )
-
-        # Nullity Correlation
         null_corr = global_res.get("null_correlation", None)
-        if null_corr is not None and not null_corr.empty:
+        if null_corr is not None and (not null_corr.empty):
             fig, ax = plt.subplots(figsize=(10, 8))
             sns.heatmap(
                 null_corr, annot=True, cmap="coolwarm", center=0, fmt=".2f", ax=ax
@@ -54,8 +51,6 @@ class GlobalPlotter(BasePlotter):
             PlotVisualizer.save_and_show(
                 fig, "0_null_correlation.png", self.save_dir, self.save_reports
             )
-
-        # Imputation Shift
         imputation_shift = global_res.get("imputation_shift", {})
         if imputation_shift:
             features = list(imputation_shift.keys())

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 from typing import Any, Dict
 
@@ -7,10 +9,6 @@ from scipy import stats
 
 
 class UnivariateAnalyzer:
-    """
-    Phase 2: Univariate Analysis
-    Automatically infers data types and performs single-column EDA.
-    """
 
     @staticmethod
     def infer_data_types(df: pd.DataFrame) -> Dict[str, Dict[str, list]]:
@@ -19,12 +17,10 @@ class UnivariateAnalyzer:
             "numerical": {"discrete": [], "continuous": []},
             "specialized": {"datetime": [], "text": []},
         }
-
         for col in df.columns:
             series = df[col]
             n_unique = series.nunique()
             dtype = series.dtype
-
             if pd.api.types.is_datetime64_any_dtype(dtype):
                 types["specialized"]["datetime"].append(col)
             elif pd.api.types.is_numeric_dtype(dtype):
@@ -34,20 +30,16 @@ class UnivariateAnalyzer:
                     types["numerical"]["discrete"].append(col)
                 else:
                     types["numerical"]["continuous"].append(col)
+            elif n_unique <= 20:
+                types["categorical"]["ordinal"].append(col)
+            elif 20 < n_unique <= 100:
+                types["categorical"]["nominal"].append(col)
             else:
-                # object, string, category
-                # 20 is a standard heuristic in AutoEDA (like Sweetviz/Pandas Profiling) for max categories
-                if n_unique <= 20:
-                    types["categorical"]["ordinal"].append(col)
-                elif 20 < n_unique <= 100:
-                    types["categorical"]["nominal"].append(col)
+                mean_len = series.dropna().astype(str).str.len().mean()
+                if not pd.isna(mean_len) and mean_len > 50:
+                    types["specialized"]["text"].append(col)
                 else:
-                    mean_len = series.dropna().astype(str).str.len().mean()
-                    if not pd.isna(mean_len) and mean_len > 50:
-                        types["specialized"]["text"].append(col)
-                    else:
-                        types["categorical"]["nominal"].append(col)
-
+                    types["categorical"]["nominal"].append(col)
         return types
 
     @staticmethod
@@ -55,40 +47,28 @@ class UnivariateAnalyzer:
         results: Dict[str, Any] = {}
         type_mapping = UnivariateAnalyzer.infer_data_types(df)
         results["type_mapping"] = type_mapping
-
-        # ---------------------------------------------------------
-        # 1. Categorical: Ordinal
-        # ---------------------------------------------------------
         ordinal_cols = type_mapping["categorical"]["ordinal"]
         ordinal_stats = {}
         for col in ordinal_cols:
             series = df[col].dropna()
             freq = series.value_counts()
-            rare_labels = freq[freq < (len(series) * 0.05)].index.tolist()
+            rare_labels = freq[freq < len(series) * 0.05].index.tolist()
             ordinal_stats[col] = {
                 "frequencies": freq.to_dict(),
                 "rare_labels": rare_labels,
                 "cardinality": len(freq),
             }
         results["ordinal_stats"] = ordinal_stats
-
-        # ---------------------------------------------------------
-        # 2. Categorical: Nominal
-        # ---------------------------------------------------------
         nominal_cols = type_mapping["categorical"]["nominal"]
         nominal_stats = {}
         for col in nominal_cols:
             series = df[col].dropna()
             freq = series.value_counts()
-            rare_labels = freq[freq < (len(series) * 0.05)].index.tolist()
-            # Shannon Entropy from scratch
+            rare_labels = freq[freq < len(series) * 0.05].index.tolist()
             probs = freq / len(series)
-            entropy = float(-1.0 * float(np.sum(probs * np.log2(probs + 1e-9))))
-
-            # String inconsistency (checking lowercase vs uppercase overlaps)
+            entropy = float(-1.0 * float(np.sum(probs * np.log2(probs + 1e-09))))
             lower_counts = series.astype(str).str.lower().nunique()
             inconsistent = lower_counts < series.nunique()
-
             nominal_stats[col] = {
                 "frequencies": freq.head(20).to_dict(),
                 "rare_labels": rare_labels,
@@ -97,10 +77,6 @@ class UnivariateAnalyzer:
                 "string_inconsistency": inconsistent,
             }
         results["nominal_stats"] = nominal_stats
-
-        # ---------------------------------------------------------
-        # 3. Numerical: Discrete
-        # ---------------------------------------------------------
         discrete_cols = type_mapping["numerical"]["discrete"]
         discrete_stats = {}
         for col in discrete_cols:
@@ -115,10 +91,6 @@ class UnivariateAnalyzer:
                 "mode": series.mode().iloc[0] if not series.mode().empty else np.nan,
             }
         results["discrete_stats"] = discrete_stats
-
-        # ---------------------------------------------------------
-        # 4. Numerical: Continuous
-        # ---------------------------------------------------------
         continuous_cols = type_mapping["numerical"]["continuous"]
         continuous_stats = {}
         for col in continuous_cols:
@@ -128,39 +100,29 @@ class UnivariateAnalyzer:
             q1 = series.quantile(0.25)
             q3 = series.quantile(0.75)
             iqr = q3 - q1
-
-            # Normality Hypothesis Testing (Shapiro-Wilk vs K-S)
             sample = (
                 series if len(series) <= 5000 else series.sample(5000, random_state=42)
             )
             try:
                 if len(series) > 5000:
-                    stand = (series - series.mean()) / (series.std() + 1e-9)
+                    stand = (series - series.mean()) / (series.std() + 1e-09)
                     _, p_value = stats.kstest(stand, "norm")
                     is_normal = p_value > 0.05
                 else:
                     _, p_value = stats.shapiro(sample)
                     is_normal = p_value > 0.05
             except Exception:
-                p_value, is_normal = None, None
-
-            # Outliers
-            # Z-Score
+                p_value, is_normal = (None, None)
             z_scores = np.abs(stats.zscore(series))
             z_outliers = (z_scores > 3).sum()
-
-            # Tukey's
             tukey_outliers = (
-                (series < (q1 - 1.5 * iqr)) | (series > (q3 + 1.5 * iqr))
+                (series < q1 - 1.5 * iqr) | (series > q3 + 1.5 * iqr)
             ).sum()
-
-            # Hampel
             median = series.median()
             mad = np.median(np.abs(series - median))
             hampel_outliers = (
                 (np.abs(series - median) > 3 * 1.4826 * mad).sum() if mad != 0 else 0
             )
-
             continuous_stats[col] = {
                 "mean": series.mean(),
                 "median": median,
@@ -176,10 +138,6 @@ class UnivariateAnalyzer:
                 "outliers_hampel": int(hampel_outliers),
             }
         results["continuous_stats"] = continuous_stats
-
-        # ---------------------------------------------------------
-        # 5. Specialized: Date-Time
-        # ---------------------------------------------------------
         datetime_cols = type_mapping["specialized"]["datetime"]
         datetime_stats = {}
         for col in datetime_cols:
@@ -188,20 +146,14 @@ class UnivariateAnalyzer:
                 continue
             sorted_series = series.sort_values()
             diffs = sorted_series.diff().dt.total_seconds()
-
-            # Augmented Dickey-Fuller Test for Stationarity (Approximation via statsmodels if possible, else skip)
-            # Since we can't use statsmodels, we'll just check if variance is stable across halves
             half = len(series) // 2
             v1, v2 = (
                 series.iloc[:half].astype(np.int64).var(),
                 series.iloc[half:].astype(np.int64).var(),
             )
-            pseudo_stationary = abs(v1 - v2) / (v1 + 1e-9) < 0.2 if v1 != 0 else True
-
-            # Monthly counts for trend analysis
+            pseudo_stationary = abs(v1 - v2) / (v1 + 1e-09) < 0.2 if v1 != 0 else True
             monthly = series.groupby(series.dt.to_period("M")).size()
             trend = monthly.rolling(window=3, min_periods=1).mean().to_dict()
-
             datetime_stats[col] = {
                 "min_date": str(series.min()),
                 "max_date": str(series.max()),
@@ -211,28 +163,21 @@ class UnivariateAnalyzer:
                 "monthly_trend": {str(k): v for k, v in trend.items()},
             }
         results["datetime_stats"] = datetime_stats
-
-        # ---------------------------------------------------------
-        # 6. Specialized: Text
-        # ---------------------------------------------------------
         text_cols = type_mapping["specialized"]["text"]
         text_stats = {}
         for col in text_cols:
             series = df[col].dropna().astype(str)
             char_counts = series.str.len()
-            word_counts = series.apply(lambda x: len(re.findall(r"\w+", x)))
-
-            # Unigrams and Bigrams
+            word_counts = series.apply(lambda x: len(re.findall("\\w+", x)))
             from collections import Counter
 
-            unigrams = Counter()  # type: ignore
-            bigrams = Counter()  # type: ignore
+            unigrams: Counter = Counter()
+            bigrams: Counter = Counter()
             for text in series:
-                words = re.findall(r"\b\w+\b", text.lower())
+                words = re.findall("\\b\\w+\\b", text.lower())
                 unigrams.update(words)
                 if len(words) >= 2:
                     bigrams.update(zip(words[:-1], words[1:]))
-
             text_stats[col] = {
                 "mean_char_length": char_counts.mean(),
                 "max_char_length": char_counts.max(),
@@ -242,5 +187,4 @@ class UnivariateAnalyzer:
                 "top_bigrams": {" ".join(k): v for k, v in bigrams.most_common(10)},
             }
         results["text_stats"] = text_stats
-
         return results

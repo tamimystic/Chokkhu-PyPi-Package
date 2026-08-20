@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Any, Dict
 
 import numpy as np
@@ -8,22 +10,14 @@ from chokkhu.eda.tabular.univariate import UnivariateAnalyzer
 
 
 class BivariateAnalyzer:
-    """
-    Phase 3: Bivariate Analysis
-    Handles Feature vs Feature and Feature vs Target relationships deeply across all combinations.
-    """
 
     @staticmethod
     def calculate_iv_woe(df: pd.DataFrame, feature: str, target: str) -> Dict[str, Any]:
         df_temp = df[[feature, target]].dropna()
         if df_temp.empty or df_temp[target].nunique() != 2:
             return {}
-
-        # Ensure target is 0/1
         t_max = df_temp[target].max()
         df_temp["target_bin"] = np.where(df_temp[target] == t_max, 1, 0)
-
-        # Bin feature if continuous
         if (
             pd.api.types.is_numeric_dtype(df_temp[feature])
             and df_temp[feature].nunique() > 10
@@ -33,48 +27,34 @@ class BivariateAnalyzer:
             ).astype(str)
         else:
             df_temp["feature_bin"] = df_temp[feature].astype(str)
-
         grouped = df_temp.groupby("feature_bin")["target_bin"].agg(["count", "sum"])
         grouped["events"] = grouped["sum"]
         grouped["non_events"] = grouped["count"] - grouped["sum"]
-
         total_events = grouped["events"].sum()
         total_non_events = grouped["non_events"].sum()
-
         if total_events == 0 or total_non_events == 0:
             return {}
-
         grouped["event_rate"] = grouped["events"] / total_events
         grouped["non_event_rate"] = grouped["non_events"] / total_non_events
-
-        # Replace 0 with a small epsilon to avoid inf
         grouped["event_rate"] = grouped["event_rate"].replace(0, 0.0001)
         grouped["non_event_rate"] = grouped["non_event_rate"].replace(0, 0.0001)
-
         grouped["woe"] = np.log(grouped["event_rate"] / grouped["non_event_rate"])
         grouped["iv"] = (grouped["event_rate"] - grouped["non_event_rate"]) * grouped[
             "woe"
         ]
-
         return {"iv": grouped["iv"].sum(), "woe_dict": grouped["woe"].to_dict()}
 
     @staticmethod
     def analyze(df: pd.DataFrame, target_col: str = None) -> Dict[str, Any]:
         results: Dict[str, Any] = {}
         types = UnivariateAnalyzer.infer_data_types(df)
-
         categorical = types["categorical"]["ordinal"] + types["categorical"]["nominal"]
         numerical = types["numerical"]["discrete"] + types["numerical"]["continuous"]
-
-        # ---------------------------------------------------------
-        # 2.1 Categorical vs Categorical Analysis
-        # ---------------------------------------------------------
         cat_vs_cat = {}
         if len(categorical) >= 2:
-            # We iterate over all pairs of categorical columns
             for i in range(len(categorical)):
                 for j in range(i + 1, len(categorical)):
-                    c1, c2 = categorical[i], categorical[j]
+                    c1, c2 = (categorical[i], categorical[j])
                     try:
                         crosstab = pd.crosstab(df[c1], df[c2])
                         if not crosstab.empty:
@@ -86,13 +66,8 @@ class BivariateAnalyzer:
                     except Exception:
                         pass
         results["cat_vs_cat"] = cat_vs_cat
-
-        # ---------------------------------------------------------
-        # 2.2 Categorical vs Numerical Analysis
-        # ---------------------------------------------------------
         cat_vs_num = {}
         if len(categorical) > 0 and len(numerical) > 0:
-            # All combinations of cat vs num
             for cat in categorical:
                 for num in numerical:
                     groups = [
@@ -111,15 +86,11 @@ class BivariateAnalyzer:
                         except Exception:
                             pass
         results["cat_vs_num"] = cat_vs_num
-
-        # ---------------------------------------------------------
-        # 2.3 Numerical vs Numerical Analysis
-        # ---------------------------------------------------------
         num_vs_num = {}
         if len(numerical) >= 2:
             for i in range(len(numerical)):
                 for j in range(i + 1, len(numerical)):
-                    n1, n2 = numerical[i], numerical[j]
+                    n1, n2 = (numerical[i], numerical[j])
                     try:
                         corr = df[[n1, n2]].corr().iloc[0, 1]
                         num_vs_num[f"{n1}_vs_{n2}"] = {
@@ -130,13 +101,8 @@ class BivariateAnalyzer:
                     except Exception:
                         pass
         results["num_vs_num"] = num_vs_num
-
-        # ---------------------------------------------------------
-        # 2.4 Target vs All Features Analysis
-        # ---------------------------------------------------------
         if target_col and target_col in df.columns:
             target_analysis = {}
-            # Binary target predictive power (IV / WoE)
             if df[target_col].nunique() == 2:
                 iv_results = {}
                 for col in df.columns:
@@ -145,10 +111,7 @@ class BivariateAnalyzer:
                     iv_data = BivariateAnalyzer.calculate_iv_woe(df, col, target_col)
                     if iv_data and "iv" in iv_data:
                         iv_results[col] = iv_data["iv"]
-
                 target_analysis["information_value"] = iv_results
-
-            # ANOVA / Kruskal (Categorical vs Continuous Target)
             if target_col in numerical:
                 anova_res = {}
                 for cat_col in categorical:
@@ -165,8 +128,6 @@ class BivariateAnalyzer:
                         except Exception:
                             pass
                 target_analysis["categorical_vs_target_anova"] = anova_res
-
-            # Point-Biserial correlation / T-Test for Numerical vs Binary Target
             if df[target_col].nunique() == 2:
                 t_tests = {}
                 for num_col in numerical:
@@ -185,10 +146,7 @@ class BivariateAnalyzer:
                     except Exception:
                         pass
                 target_analysis["numerical_vs_target_ttest"] = t_tests
-
             results["target_analysis"] = target_analysis
         else:
-            # If no target column provided
             results["target_analysis"] = {}
-
         return results

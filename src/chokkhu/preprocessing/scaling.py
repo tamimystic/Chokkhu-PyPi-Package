@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import numpy as np
 
 
 class StandardScaler:
+
     def __init__(self):
         self.mean = None
         self.std = None
@@ -15,7 +18,7 @@ class StandardScaler:
 
     def transform(self, X):
         X_arr = np.asarray(X, dtype=np.float64)
-        return (X_arr - self.mean) / (self.std + 1e-8)
+        return (X_arr - self.mean) / (self.std + 1e-08)
 
     def fit_transform(self, X):
         return self.fit(X).transform(X)
@@ -26,6 +29,7 @@ class StandardScaler:
 
 
 class MinMaxScaler:
+
     def __init__(self, feature_range=(0, 1)):
         self.feature_range = feature_range
         self.min = None
@@ -61,6 +65,7 @@ class MinMaxScaler:
 
 
 class RobustScaler:
+
     def __init__(self):
         self.median = None
         self.iqr = None
@@ -76,7 +81,7 @@ class RobustScaler:
 
     def transform(self, X):
         X_arr = np.asarray(X, dtype=np.float64)
-        return (X_arr - self.median) / (self.iqr + 1e-8)
+        return (X_arr - self.median) / (self.iqr + 1e-08)
 
     def fit_transform(self, X):
         return self.fit(X).transform(X)
@@ -87,6 +92,7 @@ class RobustScaler:
 
 
 class MaxAbsScaler:
+
     def __init__(self):
         self.max_abs = None
 
@@ -108,6 +114,7 @@ class MaxAbsScaler:
 
 
 class L2Scaler:
+
     def fit(self, X):
         return self
 
