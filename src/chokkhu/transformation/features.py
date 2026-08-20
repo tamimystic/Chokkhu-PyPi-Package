@@ -113,7 +113,7 @@ class BinningTransformer:
                     continue
                 if self.strategy == "quantile":
                     quantiles = np.linspace(0, 1, self.n_bins + 1)
-                    edges: np.ndarray = np.percentile(col_data, quantiles * 100.0)
+                    edges = np.asarray(np.percentile(col_data, quantiles * 100.0))
                 else:
                     edges = np.linspace(col_data.min(), col_data.max(), self.n_bins + 1)
                 edges = np.unique(edges)

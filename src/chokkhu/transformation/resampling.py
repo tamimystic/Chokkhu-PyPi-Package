@@ -75,7 +75,7 @@ class RandomUnderSampler:
         min_count = int(np.min(counts))
         target_count = max(int(min_count / self.ratio), min_count)
 
-        selected_indices = []
+        selected_indices: list = []
         for c in classes:
             idx_c = np.where(y_arr == c)[0]
             if len(idx_c) > target_count:
