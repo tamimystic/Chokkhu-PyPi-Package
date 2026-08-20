@@ -83,7 +83,7 @@ class UnivariateAnalyzer:
             rare_labels = freq[freq < (len(series) * 0.05)].index.tolist()
             # Shannon Entropy from scratch
             probs = freq / len(series)
-            entropy = -np.sum(probs * np.log2(probs + 1e-9))
+            entropy = float(-1.0 * float(np.sum(probs * np.log2(probs + 1e-9))))
 
             # String inconsistency (checking lowercase vs uppercase overlaps)
             lower_counts = series.astype(str).str.lower().nunique()

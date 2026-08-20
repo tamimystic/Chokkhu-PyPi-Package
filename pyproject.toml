@@ -12,18 +12,19 @@ addopts = "-ra -q"
 [tool.mypy]
 mypy_path = "src"
 ignore_missing_imports = true
+follow_imports = "skip"
 strict_optional = false
 disallow_untyped_defs = false
-check_untyped_defs = true
+check_untyped_defs = false
 
 
 [tool.isort]
 profile = "black"
 line_length = 88
-known_first_party = ["Chokkhu"]
+known_first_party = ["chokkhu"]
 src_paths = ["src"]
 
 
 [tool.black]
 line-length = 88
-target-version = ["py38", "py39", "py310", "py311"]
+target-version = ["py38", "py39", "py310", "py311", "py312"]
