@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/tamimystic/Chokkhu-PyPi-Package/main/profile.jpg" width="150" height="150" style="border-radius:50%;" alt="Author Profile">
+<img src="https://raw.githubusercontent.com/tamimystic/chokkhu/main/profile.jpg" width="150" height="150" style="border-radius:50%;" alt="Author Profile">
 
 # Chokkhu
 
@@ -8,8 +8,8 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/chokkhu.svg?color=blue&style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/chokkhu/)
 [![Python versions](https://img.shields.io/pypi/pyversions/chokkhu.svg?style=for-the-badge&logo=python&logoColor=white)](https://pypi.org/project/chokkhu/)
-[![License](https://img.shields.io/github/license/tamimystic/Chokkhu-PyPi-Package.svg?style=for-the-badge)](https://github.com/tamimystic/Chokkhu-PyPi-Package/blob/main/LICENSE)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/tamimystic/Chokkhu-PyPi-Package/ci.yml?branch=main&style=for-the-badge&logo=github-actions&logoColor=white)](https://github.com/tamimystic/Chokkhu-PyPi-Package/actions)
+[![License](https://img.shields.io/github/license/tamimystic/chokkhu.svg?style=for-the-badge)](https://github.com/tamimystic/chokkhu/blob/main/LICENSE)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/tamimystic/chokkhu/ci.yml?branch=main&style=for-the-badge&logo=github-actions&logoColor=white)](https://github.com/tamimystic/chokkhu/actions)
 [![Format](https://img.shields.io/pypi/format/chokkhu?style=for-the-badge)](https://pypi.org/project/chokkhu/)
 [![Status](https://img.shields.io/pypi/status/chokkhu?style=for-the-badge)](https://pypi.org/project/chokkhu/)
 
@@ -91,7 +91,7 @@ image_eda = ck.eda.image(
 
 ## Contributing
 
-We welcome contributions! Please check out the [Issues](https://github.com/tamimystic/Chokkhu-PyPi-Package/issues) page if you'd like to help improve Chokkhu.
+We welcome contributions! Please check out the [Issues](https://github.com/tamimystic/chokkhu/issues) page if you'd like to help improve Chokkhu.
 
 ## License
 

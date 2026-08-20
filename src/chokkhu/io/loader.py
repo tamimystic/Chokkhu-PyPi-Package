@@ -63,6 +63,20 @@ def _load_images(
         for f in files:
             img = cv2.imread(f)
             if img is None:
+                try:
+                    from PIL import Image
+
+                    pil_img = Image.open(f)
+                    img = np.array(pil_img)
+                    if img.ndim == 2:
+                        img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+                    elif img.ndim == 3 and img.shape[2] == 4:
+                        img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGR)
+                    elif img.ndim == 3 and img.shape[2] == 3:
+                        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+                except Exception:
+                    continue
+            if img is None:
                 continue
             if color_mode == "rgb":
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
