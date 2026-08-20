@@ -43,7 +43,7 @@ class PCA:
             ratio = np.zeros_like(eigenvalues)
 
         if self.variance_ratio is not None and 0.0 < self.variance_ratio <= 1.0:
-            cum_var = np.cumsum(ratio)
+            cum_var: np.ndarray = np.cumsum(ratio)
             k = int(np.searchsorted(cum_var, self.variance_ratio) + 1)
             k = min(k, n_features)
         elif self.n_components is not None:
