@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+__version__ = "0.4.1"
+__author__ = "tamimystic"
+
 from .cleaning import clean
 from .eda import ImageEDA, image
 from .eda import tabular as tabular_fn

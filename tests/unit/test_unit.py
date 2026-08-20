@@ -1,20 +1,17 @@
-import os
+from __future__ import annotations
 
-import pandas as pd
-
-
-def test_dummy_data_exists():
-    dummy_csv_path = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..", "dummy_data", "dummy_data.csv")
-    )
-    assert os.path.exists(dummy_csv_path)
+import chokkhu
 
 
-def test_dummy_data_content():
-    dummy_csv_path = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..", "dummy_data", "dummy_data.csv")
-    )
-    if os.path.exists(dummy_csv_path):
-        df = pd.read_csv(dummy_csv_path)
-        assert len(df) == 5
-        assert "value" in df.columns
+def test_package_metadata():
+    assert hasattr(chokkhu, "__version__")
+    assert isinstance(chokkhu.__version__, str)
+
+
+def test_package_exports():
+    assert hasattr(chokkhu, "clean")
+    assert hasattr(chokkhu, "preprocess")
+    assert hasattr(chokkhu, "split")
+    assert hasattr(chokkhu, "load")
+    assert hasattr(chokkhu, "save")
+    assert hasattr(chokkhu, "eda")
