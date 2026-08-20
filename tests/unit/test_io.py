@@ -59,7 +59,7 @@ def test_load_images_directory():
         class_b = os.path.join(tmpdir, "dogs")
         os.makedirs(class_a)
         os.makedirs(class_b)
-        dummy_img = np.zeros((50, 50, 3), dtype=np.uint8)
+        dummy_img = np.full((50, 50, 3), 128, dtype=np.uint8)
         cv2.imwrite(os.path.join(class_a, "cat1.jpg"), dummy_img)
         cv2.imwrite(os.path.join(class_b, "dog1.png"), dummy_img)
 
