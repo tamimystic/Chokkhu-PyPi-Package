@@ -18,7 +18,7 @@ class StandardScaler:
 
     def transform(self, X):
         X_arr = np.asarray(X, dtype=np.float64)
-        return (X_arr - self.mean) / (self.std + 1e-08)
+        return (X_arr - self.mean) / self.std
 
     def fit_transform(self, X):
         return self.fit(X).transform(X)
@@ -81,7 +81,7 @@ class RobustScaler:
 
     def transform(self, X):
         X_arr = np.asarray(X, dtype=np.float64)
-        return (X_arr - self.median) / (self.iqr + 1e-08)
+        return (X_arr - self.median) / self.iqr
 
     def fit_transform(self, X):
         return self.fit(X).transform(X)
