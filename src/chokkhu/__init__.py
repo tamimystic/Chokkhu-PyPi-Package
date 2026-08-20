@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__version__ = "0.5.2"
+__version__ = "0.6.0"
 __author__ = "tamimystic"
 
 from .cleaning import clean
@@ -9,6 +9,16 @@ from .eda import tabular as tabular_fn
 from .io import load, save
 from .preprocessing import preprocess
 from .splitting import split
+from .transformation import (
+    LDA,
+    PCA,
+    SMOTE,
+    TSNE,
+    ImageAugmenter,
+    LinearDiscriminantAnalysis,
+    PolynomialFeatures,
+    transform,
+)
 
 
 class EDAWrapper:
@@ -39,4 +49,20 @@ class EDAWrapper:
 
 
 eda = EDAWrapper()
-__all__ = ["eda", "load", "save", "clean", "preprocess", "split"]
+
+__all__ = [
+    "eda",
+    "load",
+    "save",
+    "clean",
+    "preprocess",
+    "transform",
+    "split",
+    "PCA",
+    "LDA",
+    "LinearDiscriminantAnalysis",
+    "TSNE",
+    "SMOTE",
+    "ImageAugmenter",
+    "PolynomialFeatures",
+]
