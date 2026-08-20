@@ -7,7 +7,7 @@ import seaborn as sns
 class PlotVisualizer:
     @staticmethod
     def setup_theme() -> None:
-        """Configures the global plotting theme for all EDA tools."""
+        plt.switch_backend("Agg")
         sns.set_theme(style="whitegrid")
         plt.rcParams.update(
             {
@@ -23,21 +23,14 @@ class PlotVisualizer:
 
     @staticmethod
     def save_and_show(fig, filename: str, save_dir: str, save_reports: bool) -> None:
-        """
-        Saves the figure in 400 DPI (Publication quality) and displays it.
-        """
         plt.tight_layout()
         if save_reports:
             os.makedirs(save_dir, exist_ok=True)
-            # High quality 400 DPI for thesis/research papers
             fig.savefig(os.path.join(save_dir, filename), dpi=400, bbox_inches="tight")
-        plt.show(block=False)
-        plt.pause(1)
         plt.close(fig)
 
     @staticmethod
     def add_bar_labels(ax, vertical: bool = True) -> None:
-        """Adds numerical value labels on top of or next to seaborn/matplotlib bars."""
         for p in ax.patches:
             if vertical:
                 val = p.get_height()

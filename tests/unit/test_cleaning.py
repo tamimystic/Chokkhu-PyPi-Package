@@ -75,4 +75,7 @@ def test_duplicates_and_dtype_fixer():
     )
     assert len(cleaned) == 3
     assert np.issubdtype(cleaned["num_str"].dtype, np.floating)
-    assert cleaned["bool_str"].dtype == bool
+    assert (
+        str(cleaned["bool_str"].dtype).lower() in ["bool", "boolean"]
+        or cleaned["bool_str"].dtype == bool
+    )

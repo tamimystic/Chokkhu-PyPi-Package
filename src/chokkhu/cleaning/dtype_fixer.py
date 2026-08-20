@@ -34,9 +34,9 @@ def fix_dtypes(
                 "y": True,
                 "n": False,
             }
-            lower_s = s.astype(str).str.lower().str.strip()
+            lower_s = df[col].astype(str).str.lower().str.strip()
             if lower_s.isin(bool_map.keys()).all():
-                df[col] = lower_s.map(bool_map)
+                df[col] = lower_s.map(bool_map).astype(bool)
                 continue
             if df[col].nunique() <= category_threshold:
                 df[col] = df[col].astype("category")
