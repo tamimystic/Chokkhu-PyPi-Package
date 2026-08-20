@@ -4,6 +4,7 @@ import tempfile
 import numpy as np
 import pandas as pd
 import pytest
+from PIL import Image
 
 import chokkhu
 
@@ -59,7 +60,6 @@ def test_load_images_directory():
         os.makedirs(class_a)
         os.makedirs(class_b)
         dummy_img = np.full((50, 50, 3), 128, dtype=np.uint8)
-        from PIL import Image
 
         Image.fromarray(dummy_img).save(os.path.join(class_a, "cat1.jpg"))
         Image.fromarray(dummy_img).save(os.path.join(class_b, "dog1.png"))
