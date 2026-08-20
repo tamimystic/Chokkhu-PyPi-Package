@@ -3,9 +3,9 @@ import setuptools
 with open("README.md", "r", encoding="utf-8") as f:
     long_description=f.read()
 
-__version__="0.3.26"
+__version__="0.3.27"
 
-REPO_NAME="Chokkhu-PyPi-Package"
+REPO_NAME="chokkhu"
 AUTHOR_USER_NAME="tamimystic"
 AUTHOR_EMAIL="hossainsmtamim@gamil.com"
 SRC_REPO="chokkhu"
