@@ -1,15 +1,25 @@
 import numpy as np
 import pandas as pd
-import pytest
+
 import chokkhu
 from chokkhu.preprocessing import (
-    StandardScaler, MinMaxScaler, RobustScaler, MaxAbsScaler, L2Scaler,
-    LabelEncoder, OneHotEncoder, TargetEncoder, FrequencyEncoder, BinaryEncoder, OrdinalEncoder
+    BinaryEncoder,
+    FrequencyEncoder,
+    L2Scaler,
+    LabelEncoder,
+    MaxAbsScaler,
+    MinMaxScaler,
+    OneHotEncoder,
+    OrdinalEncoder,
+    RobustScaler,
+    StandardScaler,
+    TargetEncoder,
 )
+
 
 def test_scalers():
     data = np.array([[1.0, 10.0], [2.0, 20.0], [3.0, 30.0]])
-    
+
     std_scaler = StandardScaler()
     scaled_std = std_scaler.fit_transform(data)
     assert np.allclose(np.mean(scaled_std, axis=0), [0.0, 0.0])
@@ -37,9 +47,10 @@ def test_scalers():
     norms = np.linalg.norm(scaled_l2, axis=1)
     assert np.allclose(norms, [1.0, 1.0, 1.0])
 
+
 def test_encoders():
     s = pd.Series(["cat", "dog", "cat", "bird"])
-    
+
     le = LabelEncoder()
     encoded_le = le.fit_transform(s)
     assert len(encoded_le) == 4
@@ -62,32 +73,37 @@ def test_encoders():
     encoded_be = be.fit_transform(s, prefix="bin")
     assert encoded_be.shape[1] >= 2
 
+    oe = OrdinalEncoder()
+    encoded_oe = oe.fit_transform(s)
+    assert len(encoded_oe) == 4
+
+
 def test_full_preprocess_and_state():
-    train_df = pd.DataFrame({
-        "age": [20, 30, 40, 50],
-        "salary": [20000.0, 30000.0, 40000.0, 50000.0],
-        "city": ["Dhaka", "Chittagong", "Dhaka", "Sylhet"],
-        "target": [0, 1, 0, 1]
-    })
-    
-    processed_train, state = chokkhu.preprocess(
-        train_df,
-        target="target",
-        scale="standard",
-        encode="onehot"
+    train_df = pd.DataFrame(
+        {
+            "age": [20, 30, 40, 50],
+            "salary": [20000.0, 30000.0, 40000.0, 50000.0],
+            "city": ["Dhaka", "Chittagong", "Dhaka", "Sylhet"],
+            "target": [0, 1, 0, 1],
+        }
     )
-    
+
+    processed_train, state = chokkhu.preprocess(
+        train_df, target="target", scale="standard", encode="onehot"
+    )
+
     assert "target" in processed_train.columns
     assert "age" in processed_train.columns
     assert "salary" in processed_train.columns
-    assert "city_Dhaka" in processed_train.columns or "city_Sylhet" in processed_train.columns
-    
-    test_df = pd.DataFrame({
-        "age": [25, 35],
-        "salary": [25000.0, 35000.0],
-        "city": ["Dhaka", "Sylhet"]
-    })
-    
+    assert (
+        "city_Dhaka" in processed_train.columns
+        or "city_Sylhet" in processed_train.columns
+    )
+
+    test_df = pd.DataFrame(
+        {"age": [25, 35], "salary": [25000.0, 35000.0], "city": ["Dhaka", "Sylhet"]}
+    )
+
     processed_test = state.transform(test_df)
     assert len(processed_test) == 2
     assert "age" in processed_test.columns

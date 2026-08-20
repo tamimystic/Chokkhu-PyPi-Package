@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
+
 class VarianceThresholdSelector:
     def __init__(self, threshold=0.01):
         self.threshold = threshold
@@ -22,6 +23,7 @@ class VarianceThresholdSelector:
     def fit_transform(self, df: pd.DataFrame):
         return self.fit(df).transform(df)
 
+
 class CorrelationFilterSelector:
     def __init__(self, threshold=0.95):
         self.threshold = threshold
@@ -38,7 +40,14 @@ class CorrelationFilterSelector:
             high_corr = upper.index[upper[col] > self.threshold].tolist()
             if high_corr:
                 if target is not None and pd.api.types.is_numeric_dtype(target):
-                    target_corr = {c: abs(np.corrcoef(df[c], target)[0, 1]) if df[c].std() > 0 else 0 for c in [col] + high_corr}
+                    target_corr = {
+                        c: (
+                            abs(np.corrcoef(df[c], target)[0, 1])
+                            if df[c].std() > 0
+                            else 0
+                        )
+                        for c in [col] + high_corr
+                    }
                     worst = min(target_corr, key=target_corr.get)
                     drop_cols.add(worst)
                 else:
@@ -51,6 +60,7 @@ class CorrelationFilterSelector:
 
     def fit_transform(self, df: pd.DataFrame, target: pd.Series = None):
         return self.fit(df, target).transform(df)
+
 
 class MutualInfoSelector:
     def __init__(self, k=10):
@@ -70,18 +80,22 @@ class MutualInfoSelector:
         for i in p_xy.index:
             for j in p_xy.columns:
                 if p_xy.loc[i, j] > 0:
-                    mi += p_xy.loc[i, j] * np.log2(p_xy.loc[i, j] / (p_x[i] * p_y[j] + 1e-12))
+                    mi += p_xy.loc[i, j] * np.log2(
+                        p_xy.loc[i, j] / (p_x[i] * p_y[j] + 1e-12)
+                    )
         return mi
 
     def fit(self, df: pd.DataFrame, target: pd.Series):
         scores = {}
         for col in df.columns:
             try:
-                scores[col] = self._calc_mi(df[col].dropna(), target.loc[df[col].dropna().index])
+                scores[col] = self._calc_mi(
+                    df[col].dropna(), target.loc[df[col].dropna().index]
+                )
             except Exception:
                 scores[col] = 0.0
         sorted_cols = sorted(scores, key=scores.get, reverse=True)
-        self.selected_columns = sorted_cols[:min(self.k, len(sorted_cols))]
+        self.selected_columns = sorted_cols[: min(self.k, len(sorted_cols))]
         return self
 
     def transform(self, df: pd.DataFrame):
@@ -89,6 +103,7 @@ class MutualInfoSelector:
 
     def fit_transform(self, df: pd.DataFrame, target: pd.Series):
         return self.fit(df, target).transform(df)
+
 
 class ANOVASelector:
     def __init__(self, k=10):
@@ -111,7 +126,7 @@ class ANOVASelector:
             else:
                 scores[col] = 0.0
         sorted_cols = sorted(scores, key=scores.get, reverse=True)
-        self.selected_columns = sorted_cols[:min(self.k, len(sorted_cols))]
+        self.selected_columns = sorted_cols[: min(self.k, len(sorted_cols))]
         return self
 
     def transform(self, df: pd.DataFrame):

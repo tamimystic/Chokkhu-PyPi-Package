@@ -8,12 +8,12 @@ from chokkhu.core.logger import Logger, get_progress_bar
 from chokkhu.core.visualizer import PlotVisualizer
 
 from .color import ColorAnalyzer
+from .duplicates import DuplicateDetector
 from .metadata import MetadataExtractor
+from .objects import ObjectDetector
 from .plotter import ImagePlotter
 from .quality import QualityAnalyzer
 from .texture import TextureAnalyzer
-from .duplicates import DuplicateDetector
-from .objects import ObjectDetector
 
 
 class ImageEDA:
@@ -61,6 +61,7 @@ class ImageEDA:
             csv_path = os.path.join(self.save_dir, "image_metrics.csv")
             self.results["df_metrics"].to_csv(csv_path, index=False)
             from chokkhu.reports.html_builder import HTMLReportBuilder
+
             HTMLReportBuilder.build(self.save_dir, title="Chokkhu Image EDA Report")
             Logger.info(f"Image EDA Complete! All reports saved at: {self.save_dir}")
 

@@ -1,5 +1,5 @@
 import numpy as np
-import pandas as pd
+
 
 class StandardScaler:
     def __init__(self):
@@ -24,6 +24,7 @@ class StandardScaler:
         X_arr = np.asarray(X, dtype=np.float64)
         return X_arr * self.std + self.mean
 
+
 class MinMaxScaler:
     def __init__(self, feature_range=(0, 1)):
         self.feature_range = feature_range
@@ -41,7 +42,10 @@ class MinMaxScaler:
         rng = self.max - self.min
         rng[rng == 0] = 1.0
         norm = (X_arr - self.min) / rng
-        return norm * (self.feature_range[1] - self.feature_range[0]) + self.feature_range[0]
+        return (
+            norm * (self.feature_range[1] - self.feature_range[0])
+            + self.feature_range[0]
+        )
 
     def fit_transform(self, X):
         return self.fit(X).transform(X)
@@ -50,8 +54,11 @@ class MinMaxScaler:
         X_arr = np.asarray(X, dtype=np.float64)
         rng = self.max - self.min
         rng[rng == 0] = 1.0
-        unscaled = (X_arr - self.feature_range[0]) / (self.feature_range[1] - self.feature_range[0])
+        unscaled = (X_arr - self.feature_range[0]) / (
+            self.feature_range[1] - self.feature_range[0]
+        )
         return unscaled * rng + self.min
+
 
 class RobustScaler:
     def __init__(self):
@@ -78,6 +85,7 @@ class RobustScaler:
         X_arr = np.asarray(X, dtype=np.float64)
         return X_arr * self.iqr + self.median
 
+
 class MaxAbsScaler:
     def __init__(self):
         self.max_abs = None
@@ -98,6 +106,7 @@ class MaxAbsScaler:
     def inverse_transform(self, X):
         return np.asarray(X, dtype=np.float64) * self.max_abs
 
+
 class L2Scaler:
     def fit(self, X):
         return self
@@ -111,13 +120,16 @@ class L2Scaler:
     def fit_transform(self, X):
         return self.transform(X)
 
+
 def get_scaler(name: str, **kwargs):
     scalers = {
         "standard": StandardScaler,
-        "minmax": lambda: MinMaxScaler(feature_range=kwargs.get("feature_range", (0, 1))),
+        "minmax": lambda: MinMaxScaler(
+            feature_range=kwargs.get("feature_range", (0, 1))
+        ),
         "robust": RobustScaler,
         "maxabs": MaxAbsScaler,
-        "l2": L2Scaler
+        "l2": L2Scaler,
     }
     if name not in scalers:
         raise ValueError(f"Unknown scaler: {name}")

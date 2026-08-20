@@ -1,10 +1,13 @@
 import os
 import tempfile
+
+import cv2
 import numpy as np
 import pandas as pd
-import cv2
 import pytest
+
 import chokkhu
+
 
 def test_load_and_save_csv():
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -17,6 +20,7 @@ def test_load_and_save_csv():
         assert loaded_df.shape == (3, 3)
         assert list(loaded_df.columns) == ["a", "b", "c"]
 
+
 def test_load_and_save_tsv():
     with tempfile.TemporaryDirectory() as tmpdir:
         df = pd.DataFrame({"col1": [10, 20], "col2": ["a", "b"]})
@@ -26,6 +30,7 @@ def test_load_and_save_tsv():
         loaded = chokkhu.load(tsv_path)
         assert isinstance(loaded, pd.DataFrame)
         assert len(loaded) == 2
+
 
 def test_load_and_save_json():
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -37,6 +42,7 @@ def test_load_and_save_json():
         assert isinstance(loaded, pd.DataFrame)
         assert len(loaded) == 2
 
+
 def test_load_and_save_numpy():
     with tempfile.TemporaryDirectory() as tmpdir:
         arr = np.array([[1, 2], [3, 4]])
@@ -45,6 +51,7 @@ def test_load_and_save_numpy():
         assert os.path.exists(npy_path)
         loaded = np.load(npy_path)
         assert np.array_equal(arr, loaded)
+
 
 def test_load_images_directory():
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -55,7 +62,7 @@ def test_load_images_directory():
         dummy_img = np.zeros((50, 50, 3), dtype=np.uint8)
         cv2.imwrite(os.path.join(class_a, "cat1.jpg"), dummy_img)
         cv2.imwrite(os.path.join(class_b, "dog1.png"), dummy_img)
-        
+
         res = chokkhu.load(tmpdir, type="image", img_size=(32, 32), normalize=True)
         assert isinstance(res, dict)
         assert "X" in res and "y" in res and "class_names" in res
@@ -63,8 +70,11 @@ def test_load_images_directory():
         assert res["X"][0].shape == (32, 32, 3)
         assert res["class_names"] == ["cats", "dogs"]
 
-        res_gray = chokkhu.load(tmpdir, type="image", color_mode="grayscale", flatten=True)
+        res_gray = chokkhu.load(
+            tmpdir, type="image", color_mode="grayscale", flatten=True
+        )
         assert res_gray["X"][0].ndim == 1
+
 
 def test_invalid_path_handling():
     with pytest.raises(ValueError):

@@ -17,9 +17,16 @@ class MultivariatePlotter(BasePlotter):
             print("  Correlation Analysis (Pearson, Spearman)")
             # Use clustermap for hierarchical clustering of features
             g = sns.clustermap(
-                pearson, annot=True, cmap="coolwarm", fmt=".2f", center=0, figsize=(12, 10)
+                pearson,
+                annot=True,
+                cmap="coolwarm",
+                fmt=".2f",
+                center=0,
+                figsize=(12, 10),
             )
-            g.fig.suptitle("Pearson Correlation Matrix (Hierarchical Clustering)", y=1.05)
+            g.fig.suptitle(
+                "Pearson Correlation Matrix (Hierarchical Clustering)", y=1.05
+            )
             PlotVisualizer.save_and_show(
                 g.fig, "5_pearson_correlation.png", self.save_dir, self.save_reports
             )

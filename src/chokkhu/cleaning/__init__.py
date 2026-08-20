@@ -1,15 +1,18 @@
 import pandas as pd
+
 from chokkhu.core.logger import Logger
+
+from .dtype_fixer import fix_dtypes
+from .duplicates import remove_duplicates
 from .missing import handle_missing
 from .outliers import handle_outliers
-from .duplicates import remove_duplicates
-from .dtype_fixer import fix_dtypes
+
 
 def clean(
     data: pd.DataFrame,
     missing: str = "median",
     missing_threshold: float = 0.5,
-    fill_value: any = 0,
+    fill_value: object = 0,
     knn_k: int = 5,
     interpolate_method: str = "linear",
     interpolate_order: int = 2,
@@ -30,12 +33,14 @@ def clean(
     inplace: bool = False,
     verbose: bool = True,
     save_report: bool = False,
-    report_dir: str = "./chokkhu_reports/"
+    report_dir: str = "./chokkhu_reports/",
 ) -> pd.DataFrame:
     df = data if inplace else data.copy()
     initial_shape = df.shape
     if fix_data_types:
-        df = fix_dtypes(df, category_threshold=category_threshold, date_formats=date_formats)
+        df = fix_dtypes(
+            df, category_threshold=category_threshold, date_formats=date_formats
+        )
     if duplicates:
         df = remove_duplicates(df, subset=duplicate_subset, keep=duplicate_keep)
     if missing is not None:
@@ -47,7 +52,7 @@ def clean(
             knn_k=knn_k,
             interpolate_method=interpolate_method,
             interpolate_order=interpolate_order,
-            iterative_max_iter=iterative_max_iter
+            iterative_max_iter=iterative_max_iter,
         )
     if outliers is not None:
         df = handle_outliers(
@@ -58,10 +63,17 @@ def clean(
             columns=outlier_columns,
             percentile_low=percentile_low,
             percentile_high=percentile_high,
-            action=outlier_action
+            action=outlier_action,
         )
     if verbose:
         Logger.info(f"Cleaned dataset: {initial_shape} -> {df.shape}")
     return df
 
-__all__ = ["clean", "handle_missing", "handle_outliers", "remove_duplicates", "fix_dtypes"]
+
+__all__ = [
+    "clean",
+    "handle_missing",
+    "handle_outliers",
+    "remove_duplicates",
+    "fix_dtypes",
+]

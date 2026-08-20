@@ -1,26 +1,30 @@
+from typing import Any, Generator
+
 import numpy as np
 import pandas as pd
-from typing import Tuple, Union, Generator
+
 
 def train_test_split(
-    X: Union[np.ndarray, pd.DataFrame],
-    y: Union[np.ndarray, pd.Series] = None,
+    X: Any,
+    y: Any = None,
     test_size: float = 0.2,
     val_size: float = None,
     shuffle: bool = True,
     stratify: bool = False,
-    random_state: int = None
+    random_state: int = None,
 ):
     if random_state is not None:
         np.random.seed(random_state)
     n = len(X)
     is_df = isinstance(X, pd.DataFrame)
     is_series = isinstance(y, (pd.Series, pd.DataFrame))
-    
+
     if stratify and y is not None:
         y_arr = np.asarray(y)
         classes = np.unique(y_arr)
-        train_idx, test_idx, val_idx = [], [], []
+        train_list: list = []
+        test_list: list = []
+        val_list: list = []
         for c in classes:
             c_idx = np.where(y_arr == c)[0]
             if shuffle:
@@ -29,14 +33,15 @@ def train_test_split(
             n_test = int(n_c * test_size)
             if val_size is not None:
                 n_val = int(n_c * val_size)
-                test_idx.extend(c_idx[:n_test])
-                val_idx.extend(c_idx[n_test:n_test + n_val])
-                train_idx.extend(c_idx[n_test + n_val:])
+                test_list.extend(c_idx[:n_test])
+                val_list.extend(c_idx[n_test : n_test + n_val])
+                train_list.extend(c_idx[n_test + n_val :])
             else:
-                test_idx.extend(c_idx[:n_test])
-                train_idx.extend(c_idx[n_test:])
-        train_idx, test_idx = np.array(train_idx), np.array(test_idx)
-        val_idx = np.array(val_idx) if val_size is not None else None
+                test_list.extend(c_idx[:n_test])
+                train_list.extend(c_idx[n_test:])
+        train_idx = np.array(train_list)
+        test_idx = np.array(test_list)
+        val_idx = np.array(val_list) if val_size is not None else None
     else:
         indices = np.arange(n)
         if shuffle:
@@ -45,8 +50,8 @@ def train_test_split(
         if val_size is not None:
             n_val = int(n * val_size)
             test_idx = indices[:n_test]
-            val_idx = indices[n_test:n_test + n_val]
-            train_idx = indices[n_test + n_val:]
+            val_idx = indices[n_test : n_test + n_val]
+            train_idx = indices[n_test + n_val :]
         else:
             test_idx = indices[:n_test]
             train_idx = indices[n_test:]
@@ -74,24 +79,25 @@ def train_test_split(
         return X_train, X_val, X_test
     return X_train, X_test
 
+
 def kfold(
-    X: Union[np.ndarray, pd.DataFrame],
-    y: Union[np.ndarray, pd.Series] = None,
+    X: Any,
+    y: Any = None,
     k: int = 5,
     stratified: bool = False,
     shuffle: bool = True,
-    random_state: int = None
+    random_state: int = None,
 ) -> Generator:
     if random_state is not None:
         np.random.seed(random_state)
     n = len(X)
     is_df = isinstance(X, pd.DataFrame)
     is_series = isinstance(y, (pd.Series, pd.DataFrame))
-    
+
     if stratified and y is not None:
         y_arr = np.asarray(y)
         classes = np.unique(y_arr)
-        folds = [[] for _ in range(k)]
+        folds: list = [[] for _ in range(k)]
         for c in classes:
             c_idx = np.where(y_arr == c)[0]
             if shuffle:
@@ -102,11 +108,11 @@ def kfold(
         indices = np.arange(n)
         if shuffle:
             np.random.shuffle(indices)
-        folds = [indices[i::k] for i in range(k)]
+        folds = [list(indices[i::k]) for i in range(k)]
 
     for i in range(k):
         val_idx = np.array(folds[i])
-        train_idx = np.concatenate([folds[j] for j in range(k) if j != i])
+        train_idx = np.concatenate([np.array(folds[j]) for j in range(k) if j != i])
         if is_df:
             X_tr, X_va = X.iloc[train_idx], X.iloc[val_idx]
         else:
@@ -120,10 +126,11 @@ def kfold(
         else:
             yield X_tr, X_va
 
+
 def time_series_split(
-    X: Union[np.ndarray, pd.DataFrame],
-    y: Union[np.ndarray, pd.Series] = None,
-    n_splits: int = 5
+    X: Any,
+    y: Any = None,
+    n_splits: int = 5,
 ) -> Generator:
     n = len(X)
     fold_size = n // (n_splits + 1)

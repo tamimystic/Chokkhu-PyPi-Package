@@ -44,4 +44,4 @@ jobs:
         run: mypy src
 
       - name: Run Unit & Integration Tests (pytest)
-        run: pytest --cov=src tests/
+        run: pytest tests/

@@ -216,7 +216,7 @@ class ImagePlotter:
                 legend=False,
                 palette="pastel",
                 ax=ax,
-                errorbar=None
+                errorbar=None,
             )
             ax.set_title("Average Face Count per Class (Haar Cascade)")
             PlotVisualizer.add_bar_labels(ax)

@@ -1,16 +1,18 @@
-import os
 import base64
+import os
+
 from chokkhu.core.logger import Logger
+
 
 class HTMLReportBuilder:
     @staticmethod
     def build(save_dir: str, title: str = "Chokkhu EDA Report"):
         Logger.info(f"Generating HTML Report in {save_dir}...")
-        
+
         # Get all images in the save_dir
-        image_files = [f for f in os.listdir(save_dir) if f.endswith('.png')]
+        image_files = [f for f in os.listdir(save_dir) if f.endswith(".png")]
         image_files.sort()
-        
+
         html_content = f"""
         <!DOCTYPE html>
         <html lang="en">
@@ -59,29 +61,29 @@ class HTMLReportBuilder:
             <div class="container">
                 <h1>{title}</h1>
         """
-        
+
         for img_file in image_files:
             img_path = os.path.join(save_dir, img_file)
             with open(img_path, "rb") as img_f:
-                encoded_string = base64.b64encode(img_f.read()).decode('utf-8')
-                
-            display_name = img_file.replace('.png', '').replace('_', ' ').title()
-            
+                encoded_string = base64.b64encode(img_f.read()).decode("utf-8")
+
+            display_name = img_file.replace(".png", "").replace("_", " ").title()
+
             html_content += f"""
                 <div class="plot-card">
                     <div class="plot-title">{display_name}</div>
                     <img src="data:image/png;base64,{encoded_string}" alt="{display_name}">
                 </div>
             """
-            
+
         html_content += """
             </div>
         </body>
         </html>
         """
-        
+
         report_path = os.path.join(save_dir, "chokkhu_report.html")
         with open(report_path, "w", encoding="utf-8") as f:
             f.write(html_content)
-            
+
         Logger.info(f"HTML Report generated successfully: {report_path}")

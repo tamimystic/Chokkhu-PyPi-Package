@@ -113,6 +113,7 @@ class TabularEDAEngine:
         if self.save_reports:
             self._save_json()
             from chokkhu.reports.html_builder import HTMLReportBuilder
+
             HTMLReportBuilder.build(self.save_dir, title="Chokkhu Tabular EDA Report")
 
         Logger.info("Tabular EDA Pipeline completed successfully.")

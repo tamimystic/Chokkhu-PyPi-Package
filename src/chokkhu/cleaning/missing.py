@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
-from scipy import stats, interpolate
+from scipy import stats
+
 
 def _knn_impute_col(df: pd.DataFrame, col: str, k: int = 5) -> pd.Series:
     s = df[col].copy()
@@ -22,10 +23,11 @@ def _knn_impute_col(df: pd.DataFrame, col: str, k: int = 5) -> pd.Series:
             s.loc[idx] = y_complete.mean()
             continue
         dists = np.linalg.norm(X_complete - row_feat.values, axis=1)
-        k_nearest = np.argsort(dists)[:min(k, len(dists))]
+        k_nearest = np.argsort(dists)[: min(k, len(dists))]
         weights = 1.0 / (dists[k_nearest] + 1e-8)
         s.loc[idx] = np.average(y_complete[k_nearest], weights=weights)
     return s
+
 
 def _iterative_impute(df: pd.DataFrame, max_iter: int = 10) -> pd.DataFrame:
     df_res = df.copy()
@@ -52,15 +54,16 @@ def _iterative_impute(df: pd.DataFrame, max_iter: int = 10) -> pd.DataFrame:
             df_res.loc[orig_missing, c] = X_missing_b @ w
     return df_res
 
+
 def handle_missing(
     data: pd.DataFrame,
     strategy: str = "median",
     threshold: float = 0.5,
-    fill_value: any = 0,
+    fill_value: object = 0,
     knn_k: int = 5,
     interpolate_method: str = "linear",
     interpolate_order: int = 2,
-    iterative_max_iter: int = 10
+    iterative_max_iter: int = 10,
 ) -> pd.DataFrame:
     df = data.copy()
     if strategy is None:
@@ -93,14 +96,18 @@ def handle_missing(
                 val = series.mean() if is_normal else series.median()
                 df[col] = df[col].fillna(val)
             else:
-                mode_val = df[col].mode().iloc[0] if not df[col].mode().empty else "missing"
+                mode_val = (
+                    df[col].mode().iloc[0] if not df[col].mode().empty else "missing"
+                )
                 df[col] = df[col].fillna(mode_val)
         elif strategy == "mean" and col in num_cols:
             df[col] = df[col].fillna(df[col].mean())
         elif strategy == "median" and col in num_cols:
             df[col] = df[col].fillna(df[col].median())
         elif strategy == "mode":
-            mode_val = df[col].mode().iloc[0] if not df[col].mode().empty else fill_value
+            mode_val = (
+                df[col].mode().iloc[0] if not df[col].mode().empty else fill_value
+            )
             df[col] = df[col].fillna(mode_val)
         elif strategy == "constant":
             df[col] = df[col].fillna(fill_value)
@@ -110,7 +117,9 @@ def handle_missing(
             df[col] = df[col].bfill()
         elif strategy == "interpolate" and col in num_cols:
             if interpolate_method in ["polynomial", "spline"]:
-                df[col] = df[col].interpolate(method=interpolate_method, order=interpolate_order)
+                df[col] = df[col].interpolate(
+                    method=interpolate_method, order=interpolate_order
+                )
             else:
                 df[col] = df[col].interpolate(method="linear")
         elif strategy == "knn" and col in num_cols:

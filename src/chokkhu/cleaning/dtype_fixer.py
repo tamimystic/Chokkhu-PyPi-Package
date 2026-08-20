@@ -1,9 +1,8 @@
 import pandas as pd
 
+
 def fix_dtypes(
-    data: pd.DataFrame,
-    category_threshold: int = 20,
-    date_formats: list = None
+    data: pd.DataFrame, category_threshold: int = 20, date_formats: list = None
 ) -> pd.DataFrame:
     df = data.copy()
     for col in df.columns:
@@ -25,7 +24,16 @@ def fix_dtypes(
                 except Exception:
                     df[col] = pd.to_datetime(df[col], errors="coerce")
                 continue
-            bool_map = {"true": True, "false": False, "yes": True, "no": False, "1": True, "0": False, "y": True, "n": False}
+            bool_map = {
+                "true": True,
+                "false": False,
+                "yes": True,
+                "no": False,
+                "1": True,
+                "0": False,
+                "y": True,
+                "n": False,
+            }
             lower_s = s.astype(str).str.lower().str.strip()
             if lower_s.isin(bool_map.keys()).all():
                 df[col] = lower_s.map(bool_map)

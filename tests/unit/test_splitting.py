@@ -1,8 +1,10 @@
 import numpy as np
 import pandas as pd
 import pytest
+
 import chokkhu
-from chokkhu.splitting import train_test_split, kfold, time_series_split
+from chokkhu.splitting import kfold, time_series_split, train_test_split
+
 
 def test_train_test_split_basic():
     X = np.arange(100).reshape(50, 2)
@@ -12,6 +14,7 @@ def test_train_test_split_basic():
     assert len(X_te) == 10
     assert len(y_tr) == 40
     assert len(y_te) == 10
+
 
 def test_train_val_test_split():
     df = pd.DataFrame({"feat": range(100), "target": [0, 1] * 50})
@@ -24,6 +27,7 @@ def test_train_val_test_split():
     assert y_tr.mean() == pytest.approx(0.5, abs=0.1)
     assert y_te.mean() == pytest.approx(0.5, abs=0.1)
 
+
 def test_kfold():
     X = np.arange(20)
     folds = list(kfold(X, k=4, shuffle=False))
@@ -31,6 +35,7 @@ def test_kfold():
     for tr, val in folds:
         assert len(tr) == 15
         assert len(val) == 5
+
 
 def test_time_series_split():
     X = np.arange(30)

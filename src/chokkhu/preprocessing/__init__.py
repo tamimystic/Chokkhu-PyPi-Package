@@ -1,10 +1,33 @@
+from typing import Tuple
+
 import numpy as np
 import pandas as pd
-from typing import Tuple
+
 from chokkhu.core.logger import Logger
-from .scaling import get_scaler, StandardScaler, MinMaxScaler, RobustScaler, MaxAbsScaler, L2Scaler
-from .encoding import LabelEncoder, OneHotEncoder, TargetEncoder, FrequencyEncoder, BinaryEncoder, OrdinalEncoder
-from .feature_selection import VarianceThresholdSelector, CorrelationFilterSelector, MutualInfoSelector, ANOVASelector
+
+from .encoding import (
+    BinaryEncoder,
+    FrequencyEncoder,
+    LabelEncoder,
+    OneHotEncoder,
+    OrdinalEncoder,
+    TargetEncoder,
+)
+from .feature_selection import (
+    ANOVASelector,
+    CorrelationFilterSelector,
+    MutualInfoSelector,
+    VarianceThresholdSelector,
+)
+from .scaling import (
+    L2Scaler,
+    MaxAbsScaler,
+    MinMaxScaler,
+    RobustScaler,
+    StandardScaler,
+    get_scaler,
+)
+
 
 class PreprocessorState:
     def __init__(self):
@@ -36,6 +59,7 @@ class PreprocessorState:
             df = self.feature_selector.transform(df)
         return df
 
+
 def preprocess(
     data: pd.DataFrame,
     target: str = None,
@@ -53,7 +77,7 @@ def preprocess(
     correlation_threshold: float = 0.95,
     verbose: bool = True,
     save_report: bool = False,
-    report_dir: str = "./chokkhu_reports/"
+    report_dir: str = "./chokkhu_reports/",
 ) -> Tuple[pd.DataFrame, PreprocessorState]:
     df = data.copy()
     state = PreprocessorState()
@@ -75,9 +99,14 @@ def preprocess(
                 features_df[col] = enc.transform(features_df[col])
                 state.encoders[col] = enc
             elif encode == "onehot":
-                enc = OneHotEncoder(drop_first=(onehot_drop == "first"), max_categories=onehot_max_categories).fit(features_df[col])
+                enc = OneHotEncoder(
+                    drop_first=(onehot_drop == "first"),
+                    max_categories=onehot_max_categories,
+                ).fit(features_df[col])
                 encoded_df = enc.transform(features_df[col], prefix=col)
-                features_df = pd.concat([features_df.drop(columns=[col]), encoded_df], axis=1)
+                features_df = pd.concat(
+                    [features_df.drop(columns=[col]), encoded_df], axis=1
+                )
                 state.encoders[col] = enc
             elif encode == "target" and target_series is not None:
                 enc = TargetEncoder().fit(features_df[col], target_series)
@@ -90,13 +119,19 @@ def preprocess(
             elif encode == "binary":
                 enc = BinaryEncoder().fit(features_df[col])
                 encoded_df = enc.transform(features_df[col], prefix=col)
-                features_df = pd.concat([features_df.drop(columns=[col]), encoded_df], axis=1)
+                features_df = pd.concat(
+                    [features_df.drop(columns=[col]), encoded_df], axis=1
+                )
                 state.encoders[col] = enc
             elif encode == "ordinal":
                 enc = OrdinalEncoder(order_dict=ordinal_order).fit(features_df[col])
                 features_df[col] = enc.transform(features_df[col])
                 state.encoders[col] = enc
-    cols_to_scale = scale_columns if scale_columns else features_df.select_dtypes(include=[np.number]).columns.tolist()
+    cols_to_scale = (
+        scale_columns
+        if scale_columns
+        else features_df.select_dtypes(include=[np.number]).columns.tolist()
+    )
     if scale is not None and cols_to_scale:
         for col in cols_to_scale:
             if col not in features_df.columns:
@@ -106,13 +141,21 @@ def preprocess(
             state.scalers[col] = sc
     if select_features is not None:
         if select_features == "variance":
-            selector = VarianceThresholdSelector(threshold=variance_threshold).fit(features_df)
+            selector = VarianceThresholdSelector(threshold=variance_threshold).fit(
+                features_df
+            )
         elif select_features == "correlation":
-            selector = CorrelationFilterSelector(threshold=correlation_threshold).fit(features_df, target=target_series)
+            selector = CorrelationFilterSelector(threshold=correlation_threshold).fit(
+                features_df, target=target_series
+            )
         elif select_features == "mutual_info" and target_series is not None:
-            selector = MutualInfoSelector(k=select_k or 10).fit(features_df, target=target_series)
+            selector = MutualInfoSelector(k=select_k or 10).fit(
+                features_df, target=target_series
+            )
         elif select_features == "anova" and target_series is not None:
-            selector = ANOVASelector(k=select_k or 10).fit(features_df, target=target_series)
+            selector = ANOVASelector(k=select_k or 10).fit(
+                features_df, target=target_series
+            )
         else:
             selector = None
         if selector is not None:
@@ -124,9 +167,23 @@ def preprocess(
         Logger.info(f"Preprocessed features: {data.shape} -> {features_df.shape}")
     return features_df, state
 
+
 __all__ = [
-    "preprocess", "PreprocessorState",
-    "StandardScaler", "MinMaxScaler", "RobustScaler", "MaxAbsScaler", "L2Scaler",
-    "LabelEncoder", "OneHotEncoder", "TargetEncoder", "FrequencyEncoder", "BinaryEncoder", "OrdinalEncoder",
-    "VarianceThresholdSelector", "CorrelationFilterSelector", "MutualInfoSelector", "ANOVASelector"
+    "preprocess",
+    "PreprocessorState",
+    "StandardScaler",
+    "MinMaxScaler",
+    "RobustScaler",
+    "MaxAbsScaler",
+    "L2Scaler",
+    "LabelEncoder",
+    "OneHotEncoder",
+    "TargetEncoder",
+    "FrequencyEncoder",
+    "BinaryEncoder",
+    "OrdinalEncoder",
+    "VarianceThresholdSelector",
+    "CorrelationFilterSelector",
+    "MutualInfoSelector",
+    "ANOVASelector",
 ]

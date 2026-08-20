@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+
 class _ITree:
     def __init__(self, X, current_height=0, max_height=10):
         self.size = len(X)
@@ -20,22 +21,41 @@ class _ITree:
         self.left = _ITree(X[left_mask], current_height + 1, max_height)
         self.right = _ITree(X[~left_mask], current_height + 1, max_height)
 
+
 def _path_length(tree, x, current_depth=0):
     if tree.left is None or tree.right is None:
-        return current_depth + (2.0 * (np.log(max(1, tree.size - 1)) + 0.5772156649) - (2.0 * (tree.size - 1) / max(1, tree.size)) if tree.size > 1 else 0)
+        return current_depth + (
+            2.0 * (np.log(max(1, tree.size - 1)) + 0.5772156649)
+            - (2.0 * (tree.size - 1) / max(1, tree.size))
+            if tree.size > 1
+            else 0
+        )
     if x[tree.split_feat] < tree.split_val:
         return _path_length(tree.left, x, current_depth + 1)
     return _path_length(tree.right, x, current_depth + 1)
 
+
 def _isolation_scores(X, n_trees=50):
     max_height = int(np.ceil(np.log2(max(2, len(X)))))
-    trees = [_ITree(X[np.random.choice(len(X), min(256, len(X)), replace=False)], max_height=max_height) for _ in range(n_trees)]
+    trees = [
+        _ITree(
+            X[np.random.choice(len(X), min(256, len(X)), replace=False)],
+            max_height=max_height,
+        )
+        for _ in range(n_trees)
+    ]
     scores = np.zeros(len(X))
-    c_n = 2.0 * (np.log(max(1, len(X) - 1)) + 0.5772156649) - (2.0 * (len(X) - 1) / max(1, len(X))) if len(X) > 1 else 1.0
+    c_n = (
+        2.0 * (np.log(max(1, len(X) - 1)) + 0.5772156649)
+        - (2.0 * (len(X) - 1) / max(1, len(X)))
+        if len(X) > 1
+        else 1.0
+    )
     for i in range(len(X)):
         avg_path = np.mean([_path_length(t, X[i]) for t in trees])
         scores[i] = 2.0 ** (-avg_path / c_n)
     return scores
+
 
 def handle_outliers(
     data: pd.DataFrame,
@@ -45,12 +65,14 @@ def handle_outliers(
     columns: list = None,
     percentile_low: float = 0.01,
     percentile_high: float = 0.99,
-    action: str = "remove"
+    action: str = "remove",
 ) -> pd.DataFrame:
     df = data.copy()
     if method is None:
         return df
-    num_cols = columns if columns else df.select_dtypes(include=[np.number]).columns.tolist()
+    num_cols = (
+        columns if columns else df.select_dtypes(include=[np.number]).columns.tolist()
+    )
     if not num_cols:
         return df
     if method == "log_transform":
