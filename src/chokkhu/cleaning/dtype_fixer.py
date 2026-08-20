@@ -8,7 +8,11 @@ def fix_dtypes(
 ) -> pd.DataFrame:
     df = data.copy()
     for col in df.columns:
-        if df[col].dtype == object or str(df[col].dtype) == "string":
+        if (
+            df[col].dtype == object
+            or pd.api.types.is_string_dtype(df[col].dtype)
+            or pd.api.types.is_object_dtype(df[col].dtype)
+        ):
             s = df[col].dropna()
             if len(s) == 0:
                 continue

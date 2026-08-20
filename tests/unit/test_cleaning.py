@@ -74,8 +74,11 @@ def test_duplicates_and_dtype_fixer():
         df, missing=None, outliers=None, duplicates=True, fix_data_types=True
     )
     assert len(cleaned) == 3
-    assert np.issubdtype(cleaned["num_str"].dtype, np.floating)
+    assert pd.api.types.is_float_dtype(cleaned["num_str"].dtype) or np.issubdtype(
+        cleaned["num_str"].dtype, np.floating
+    )
     assert (
-        str(cleaned["bool_str"].dtype).lower() in ["bool", "boolean"]
+        pd.api.types.is_bool_dtype(cleaned["bool_str"].dtype)
+        or str(cleaned["bool_str"].dtype).lower() in ["bool", "boolean"]
         or cleaned["bool_str"].dtype == bool
     )

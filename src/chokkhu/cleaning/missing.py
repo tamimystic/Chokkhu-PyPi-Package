@@ -16,10 +16,12 @@ def _knn_impute_col(df: pd.DataFrame, col: str, k: int = 5) -> pd.Series:
     complete_mask = ~df[num_cols].isna().any(axis=1).to_numpy() & ~missing_mask
     if not complete_mask.any():
         return s.fillna(s.median())
-    X_complete = df[num_cols].to_numpy(dtype=np.float64)[complete_mask]
-    y_complete = s.to_numpy(dtype=np.float64)[complete_mask]
-    s_arr = s.to_numpy(dtype=np.float64)
-    X_all = df[num_cols].to_numpy(dtype=np.float64)
+    X_complete = np.array(
+        df[num_cols].to_numpy(dtype=np.float64)[complete_mask], copy=True
+    )
+    y_complete = np.array(s.to_numpy(dtype=np.float64)[complete_mask], copy=True)
+    s_arr = np.array(s.to_numpy(dtype=np.float64), copy=True)
+    X_all = np.array(df[num_cols].to_numpy(dtype=np.float64), copy=True)
     missing_indices = np.where(missing_mask)[0]
     for idx in missing_indices:
         row_feat = X_all[idx]
