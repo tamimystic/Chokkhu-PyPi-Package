@@ -130,11 +130,7 @@ def preprocess(
                 enc = OrdinalEncoder(order_dict=ordinal_order).fit(features_df[col])
                 features_df[col] = enc.transform(features_df[col])
                 state.encoders[col] = enc
-    cols_to_scale = (
-        scale_columns
-        if scale_columns
-        else features_df.select_dtypes(include=[np.number]).columns.tolist()
-    )
+    cols_to_scale = scale_columns if scale_columns else state.num_cols
     if scale is not None and cols_to_scale:
         for col in cols_to_scale:
             if col not in features_df.columns:
