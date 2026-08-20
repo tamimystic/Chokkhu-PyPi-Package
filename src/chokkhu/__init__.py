@@ -2,6 +2,7 @@ from .eda import ImageEDA, image
 from .eda import tabular as tabular_fn
 from .io import load, save
 from .cleaning import clean
+from .preprocessing import preprocess
 
 class EDAWrapper:
     @staticmethod
@@ -18,4 +19,4 @@ class EDAWrapper:
 
 eda = EDAWrapper()
 
-__all__ = ["eda", "load", "save", "clean"]
+__all__ = ["eda", "load", "save", "clean", "preprocess"]
