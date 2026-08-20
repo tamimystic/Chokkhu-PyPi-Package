@@ -1,7 +1,6 @@
 import os
 import tempfile
 
-import cv2
 import numpy as np
 import pandas as pd
 import pytest
@@ -60,8 +59,10 @@ def test_load_images_directory():
         os.makedirs(class_a)
         os.makedirs(class_b)
         dummy_img = np.full((50, 50, 3), 128, dtype=np.uint8)
-        cv2.imwrite(os.path.join(class_a, "cat1.jpg"), dummy_img)
-        cv2.imwrite(os.path.join(class_b, "dog1.png"), dummy_img)
+        from PIL import Image
+
+        Image.fromarray(dummy_img).save(os.path.join(class_a, "cat1.jpg"))
+        Image.fromarray(dummy_img).save(os.path.join(class_b, "dog1.png"))
 
         res = chokkhu.load(tmpdir, type="image", img_size=(32, 32), normalize=True)
         assert isinstance(res, dict)
