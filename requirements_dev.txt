@@ -1,7 +1,5 @@
 # Testing
 pytest>=7.2,<9.0
-pytest-cov
-tox>=3.28,<5.0
 
 # Formatting & Linting
 black>=23.3,<25.0
