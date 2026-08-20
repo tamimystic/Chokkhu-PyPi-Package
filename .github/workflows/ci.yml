@@ -45,4 +45,4 @@ jobs:
         run: python -m mypy src --follow-imports=skip
 
       - name: Run Unit & Integration Tests (pytest)
-        run: python -m pytest tests/ -v -s -p no:warnings
+        run: python -m pytest tests -v -s --import-mode=importlib -p no:warnings
