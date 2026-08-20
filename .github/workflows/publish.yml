@@ -2,8 +2,9 @@ name: Publish Chokkhu to PyPI
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
 
 jobs:
   build-and-publish:
