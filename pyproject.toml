@@ -5,8 +5,6 @@ build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
-addopts = "-p no:warnings --import-mode=importlib"
 
 
 [tool.mypy]
