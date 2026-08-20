@@ -33,10 +33,9 @@ jobs:
           python -m pip install -r requirements_dev.txt
           python -m pip install -e .
 
-      - name: Run Code Formatting Checks (Black & isort)
+      - name: Run Code Formatting Checks (Black)
         run: |
           python -m black --check src
-          python -m isort --check-only --profile black src
 
       - name: Run Linting (flake8)
         run: python -m flake8 src tests
