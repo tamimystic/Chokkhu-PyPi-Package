@@ -3,6 +3,7 @@ from .eda import tabular as tabular_fn
 from .io import load, save
 from .cleaning import clean
 from .preprocessing import preprocess
+from .splitting import split
 
 class EDAWrapper:
     @staticmethod
@@ -19,4 +20,4 @@ class EDAWrapper:
 
 eda = EDAWrapper()
 
-__all__ = ["eda", "load", "save", "clean", "preprocess"]
+__all__ = ["eda", "load", "save", "clean", "preprocess", "split"]
