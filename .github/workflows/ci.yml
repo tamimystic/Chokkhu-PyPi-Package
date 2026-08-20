@@ -36,7 +36,7 @@ jobs:
       - name: Run Code Formatting Checks (Black & isort)
         run: |
           python -m black --check src
-          python -m isort --check-only src
+          python -m isort --check-only --profile black src
 
       - name: Run Linting (flake8)
         run: python -m flake8 src tests
