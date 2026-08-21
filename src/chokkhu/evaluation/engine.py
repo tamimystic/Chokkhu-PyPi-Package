@@ -107,8 +107,8 @@ def evaluate(
 
         fig, ax = plt.subplots(figsize=(8, 6))
         ax.scatter(y, y_pred, alpha=0.5, color="b")
-        min_val = min(np.min(y), np.min(y_pred))
-        max_val = max(np.max(y), np.max(y_pred))
+        min_val = float(min(np.min(y), np.min(y_pred)))
+        max_val = float(max(np.max(y), np.max(y_pred)))
         ax.plot([min_val, max_val], [min_val, max_val], "r--")
         ax.set_title("Actual vs Predicted")
         ax.set_xlabel("Actual Values")

@@ -1,14 +1,14 @@
-﻿import numpy as np
+import numpy as np
 
 
 def accuracy_score(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return float(np.mean(y_true == y_pred))
 
 
-def confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
+def confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray) -> tuple:
     classes = np.unique(np.concatenate((y_true, y_pred)))
     n_classes = len(classes)
-    matrix = np.zeros((n_classes, n_classes), dtype=int)
+    matrix: np.ndarray = np.zeros((n_classes, n_classes), dtype=int)
 
     class_to_idx = {c: i for i, c in enumerate(classes)}
     for t, p in zip(y_true, y_pred):
@@ -62,8 +62,8 @@ def mean_absolute_error(y_true: np.ndarray, y_pred: np.ndarray) -> float:
 
 
 def r2_score(y_true: np.ndarray, y_pred: np.ndarray) -> float:
-    ss_res = np.sum((y_true - y_pred) ** 2)
-    ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)
-    if ss_tot == 0:
+    ss_res = float(np.sum((y_true - y_pred) ** 2))
+    ss_tot = float(np.sum((y_true - np.mean(y_true)) ** 2))
+    if ss_tot == 0.0:
         return 0.0
-    return float(1 - (ss_res / ss_tot))
+    return float(1.0 - (ss_res / ss_tot))
