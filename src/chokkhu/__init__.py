@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__version__ = "0.7.2"
+__version__ = "0.7.3"
 __author__ = "tamimystic"
 
 from .cleaning import clean
