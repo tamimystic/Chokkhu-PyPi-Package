@@ -15,7 +15,9 @@ class MultivariatePlotter(BasePlotter):
         mult = self.results.get("multivariate", {})
         pearson = mult.get("pearson_corr", None)
         if pearson is not None and (not pearson.empty):
-            print("  Correlation Analysis (Pearson, Spearman)")
+            PlotVisualizer.display_markdown(
+                "### Correlation Analysis (Pearson, Spearman)"
+            )
             g = sns.clustermap(
                 pearson,
                 annot=True,
@@ -49,7 +51,7 @@ class MultivariatePlotter(BasePlotter):
             )
         vif = mult.get("vif", {})
         if vif:
-            print("  Multicollinearity Analysis (VIF)")
+            PlotVisualizer.display_markdown("### Multicollinearity Analysis (VIF)")
             vif_df = pd.DataFrame(
                 list(vif.items()), columns=["Feature", "VIF"]
             ).sort_values("VIF", ascending=False)

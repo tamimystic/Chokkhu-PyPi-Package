@@ -14,7 +14,7 @@ class UnivariatePlotter(BasePlotter):
 
     def plot(self):
         univ = self.results.get("univariate", {})
-        print("\n  Dataset Global Overview")
+        PlotVisualizer.display_markdown("## Dataset Global Overview")
         missing = self.df.isnull().sum()
         if missing.sum() > 0:
             fig, ax = plt.subplots(figsize=(10, 6))
@@ -54,10 +54,10 @@ class UnivariatePlotter(BasePlotter):
             PlotVisualizer.save_and_show(
                 fig, "0_dataset_description.png", self.save_dir, self.save_reports
             )
-        print("\n  Categorical Data Analysis")
+        PlotVisualizer.display_markdown("### Categorical Data Analysis")
         ordinal = univ.get("ordinal_stats", {})
         if ordinal:
-            print("    Ordinal Features Analysis")
+            PlotVisualizer.display_markdown("### Ordinal Features Analysis")
         for col, stats in ordinal.items():
             freq = stats.get("frequencies", {})
             fig, ax = plt.subplots(figsize=(10, 6))
@@ -78,7 +78,7 @@ class UnivariatePlotter(BasePlotter):
             )
         nominal = univ.get("nominal_stats", {})
         if nominal:
-            print("    Nominal Features Analysis")
+            PlotVisualizer.display_markdown("### Nominal Features Analysis")
             for col, stats in nominal.items():
                 series = self.df[col].dropna()
                 top_15 = series.value_counts().head(15)
@@ -102,10 +102,10 @@ class UnivariatePlotter(BasePlotter):
             print(
                 "    [INFO] No Nominal features found (no categorical columns with 20-100 unique values)."
             )
-        print("\n  Numerical Data Analysis")
+        PlotVisualizer.display_markdown("### Numerical Data Analysis")
         discrete = univ.get("discrete_stats", {})
         if discrete:
-            print("\n    Discrete Features Analysis")
+            PlotVisualizer.display_markdown("### Discrete Features Analysis")
         for col, stats in discrete.items():
             freq = stats.get("frequencies", {})
             fig, ax = plt.subplots(figsize=(10, 6))
@@ -126,7 +126,7 @@ class UnivariatePlotter(BasePlotter):
             )
         continuous = univ.get("continuous_stats", {})
         if continuous:
-            print("\n    Continuous Features Analysis")
+            PlotVisualizer.display_markdown("### Continuous Features Analysis")
         for col, stats in continuous.items():
             fig, axes = plt.subplots(2, 2, figsize=(16, 12))
             sns.histplot(self.df[col].dropna(), kde=True, ax=axes[0, 0], color="teal")
@@ -141,10 +141,10 @@ class UnivariatePlotter(BasePlotter):
             PlotVisualizer.save_and_show(
                 fig, f"2_continuous_{col}.png", self.save_dir, self.save_reports
             )
-        print("\n  Specialized Data Analysis")
+        PlotVisualizer.display_markdown("### Specialized Data Analysis")
         datetime = univ.get("datetime_stats", {})
         if datetime:
-            print("    DateTime Features Analysis")
+            PlotVisualizer.display_markdown("### DateTime Features Analysis")
         for col, stats in datetime.items():
             fig, ax = plt.subplots(figsize=(12, 6))
             series = pd.to_datetime(self.df[col], errors="coerce").dropna()
@@ -170,7 +170,7 @@ class UnivariatePlotter(BasePlotter):
             )
         text_stats = univ.get("text_stats", {})
         if text_stats:
-            print("    Text Features Analysis (N-Grams)")
+            PlotVisualizer.display_markdown("### Text Features Analysis (N-Grams)")
         for col, stats in text_stats.items():
             unigrams = stats.get("top_unigrams", {})
             bigrams = stats.get("top_bigrams", {})

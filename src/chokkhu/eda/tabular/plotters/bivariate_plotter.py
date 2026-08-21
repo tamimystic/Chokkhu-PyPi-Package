@@ -16,7 +16,7 @@ class BivariatePlotter(BasePlotter):
         biv = self.results.get("bivariate", {})
         cat_vs_cat = biv.get("cat_vs_cat", {})
         if cat_vs_cat:
-            print("\n  Categorical vs Categorical Analysis")
+            PlotVisualizer.display_markdown("### Categorical vs Categorical Analysis")
         for pair_name, data in cat_vs_cat.items():
             fig, ax = plt.subplots(figsize=(12, 6))
             col1 = data["c1"]
@@ -35,7 +35,7 @@ class BivariatePlotter(BasePlotter):
                 )
         cat_vs_num = biv.get("cat_vs_num", {})
         if cat_vs_num:
-            print("\n  Categorical vs Numerical Analysis")
+            PlotVisualizer.display_markdown("### Categorical vs Numerical Analysis")
         for pair_name, data in cat_vs_num.items():
             cat = data["cat"]
             num = data["num"]
@@ -60,7 +60,7 @@ class BivariatePlotter(BasePlotter):
             )
         num_vs_num = biv.get("num_vs_num", {})
         if num_vs_num:
-            print("\n  Numerical vs Numerical Analysis")
+            PlotVisualizer.display_markdown("### Numerical vs Numerical Analysis")
         hue_col = None
         univ = self.results.get("univariate", {})
         if (
@@ -102,7 +102,9 @@ class BivariatePlotter(BasePlotter):
             )
         target_analysis = biv.get("target_analysis", {})
         if target_analysis:
-            print("\n  Target vs All Features Analysis (IV, WoE, T-Test)")
+            PlotVisualizer.display_markdown(
+                "### Target vs All Features Analysis (IV, WoE, T-Test)"
+            )
         iv_res = target_analysis.get("information_value", {})
         if iv_res:
             iv_df = pd.DataFrame(

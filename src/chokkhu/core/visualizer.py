@@ -29,8 +29,25 @@ class PlotVisualizer:
         plt.tight_layout()
         if save_reports:
             os.makedirs(save_dir, exist_ok=True)
-            fig.savefig(os.path.join(save_dir, filename), dpi=400, bbox_inches="tight")
+            fig.savefig(os.path.join(save_dir, filename), dpi=300, bbox_inches="tight")
+
+        try:
+            from IPython.display import display
+
+            display(fig)
+        except ImportError:
+            pass
+
         plt.close(fig)
+
+    @staticmethod
+    def display_markdown(text: str) -> None:
+        try:
+            from IPython.display import display, Markdown
+
+            display(Markdown(text))
+        except ImportError:
+            print(f"\n{text.replace('#', '').strip()}\n")
 
     @staticmethod
     def add_bar_labels(ax, vertical: bool = True) -> None:
