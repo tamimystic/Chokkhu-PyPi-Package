@@ -84,6 +84,19 @@ def train(
     else:
         raise ValueError(f"Model {model} is not supported yet.")
 
+    import pandas as pd
+
+    if isinstance(X_train, (pd.DataFrame, pd.Series)):
+        X_train = X_train.values
+    if y_train is not None and isinstance(y_train, (pd.DataFrame, pd.Series)):
+        y_train = y_train.values
+
+    # Ensure they are numpy arrays if they are lists
+    if X_train is not None and not isinstance(X_train, np.ndarray):
+        X_train = np.array(X_train)
+    if y_train is not None and not isinstance(y_train, np.ndarray):
+        y_train = np.array(y_train)
+
     model_obj.fit(X_train, y_train)
 
     if verbose:
