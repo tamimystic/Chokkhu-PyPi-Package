@@ -5,7 +5,19 @@ import numpy as np
 from chokkhu.core.logger import Logger
 
 from .base import ChokkhuModel
-from .ml import KNN, KMeans, LinearRegression, LogisticRegression, NaiveBayes
+from .ml import (
+    DBSCAN,
+    KNN,
+    SVM,
+    DecisionTree,
+    GradientBoosting,
+    HierarchicalClustering,
+    KMeans,
+    LinearRegression,
+    LogisticRegression,
+    NaiveBayes,
+    RandomForest,
+)
 
 
 def train(
@@ -44,6 +56,28 @@ def train(
         model_obj = NaiveBayes(**kwargs)
     elif model == "kmeans":
         model_obj = KMeans(random_state=random_state, **kwargs)
+    elif model == "dbscan":
+        model_obj = DBSCAN(**kwargs)
+    elif model == "hierarchical":
+        model_obj = HierarchicalClustering(**kwargs)
+    elif model == "svm":
+        model_obj = SVM(**kwargs)
+    elif model == "decision_tree":
+        model_obj = DecisionTree(
+            task=task if task != "auto" else "classification", **kwargs
+        )
+    elif model == "random_forest":
+        model_obj = RandomForest(
+            task=task if task != "auto" else "classification",
+            random_state=random_state,
+            **kwargs,
+        )
+    elif model == "gradient_boosting":
+        model_obj = GradientBoosting(
+            task=task if task != "auto" else "classification",
+            random_state=random_state,
+            **kwargs,
+        )
     else:
         raise ValueError(f"Model {model} is not supported yet.")
 

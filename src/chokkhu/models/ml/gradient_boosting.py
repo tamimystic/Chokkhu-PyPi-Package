@@ -1,0 +1,77 @@
+from __future__ import annotations
+
+import numpy as np
+
+from ..base import ChokkhuModel
+from .decision_tree import DecisionTree
+
+
+class GradientBoosting(ChokkhuModel):
+    def __init__(
+        self,
+        task: str = "classification",
+        n_estimators: int = 10,
+        learning_rate: float = 0.1,
+        max_depth: int = 3,
+        random_state: int | None = None,
+    ) -> None:
+        self.task = task
+        self.n_estimators = n_estimators
+        self.learning_rate = learning_rate
+        self.max_depth = max_depth
+        self.random_state = random_state
+        self.trees: list[DecisionTree] = []
+        self.initial_prediction: float = 0.0
+
+    def fit(self, X: np.ndarray, y: np.ndarray | None = None) -> GradientBoosting:
+        if y is None:
+            raise ValueError("y cannot be None for Gradient Boosting")
+
+        if self.random_state is not None:
+            np.random.seed(self.random_state)
+
+        self.trees = []
+
+        if self.task == "regression":
+            self.initial_prediction = float(np.mean(y))
+            y_pred = np.full(np.shape(y), self.initial_prediction)
+
+            for _ in range(self.n_estimators):
+                residuals = y - y_pred
+                tree = DecisionTree(task="regression", max_depth=self.max_depth)
+                tree.fit(X, residuals)
+
+                update = tree.predict(X)
+                y_pred += self.learning_rate * update
+                self.trees.append(tree)
+
+        elif self.task == "classification":
+            self.initial_prediction = 0.0
+            y_pred = np.full(np.shape(y), self.initial_prediction)
+
+            for _ in range(self.n_estimators):
+                p = 1 / (1 + np.exp(-y_pred))
+                residuals = y - p
+
+                tree = DecisionTree(task="regression", max_depth=self.max_depth)
+                tree.fit(X, residuals)
+
+                update = tree.predict(X)
+                y_pred += self.learning_rate * update
+                self.trees.append(tree)
+
+        return self
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        if not self.trees:
+            raise ValueError("Model is not fitted yet.")
+
+        y_pred = np.full(X.shape[0], self.initial_prediction)
+        for tree in self.trees:
+            y_pred += self.learning_rate * tree.predict(X)
+
+        if self.task == "classification":
+            p = 1 / (1 + np.exp(-y_pred))
+            return np.where(p >= 0.5, 1, 0)
+
+        return y_pred

@@ -67,3 +67,54 @@ def test_kmeans():
     assert preds[0] == preds[1]
     assert preds[2] == preds[3]
     assert preds[0] != preds[2]
+
+
+def test_svm():
+    X = np.array([[1, 1], [1, 2], [10, 10], [10, 11]], dtype=np.float64)
+    y = np.array([0, 0, 1, 1], dtype=np.float64)
+    model = train("svm", X, y, epochs=1000, learning_rate=0.01, verbose=False)
+    preds = model.predict(X)
+    assert np.array_equal(preds, y)
+
+
+def test_decision_tree():
+    X = np.array([[1, 1], [1, 2], [10, 10], [10, 11]], dtype=np.float64)
+    y = np.array([0, 0, 1, 1], dtype=np.float64)
+    model = train("decision_tree", X, y, max_depth=2, verbose=False)
+    preds = model.predict(X)
+    assert np.array_equal(preds, y)
+
+
+def test_random_forest():
+    X = np.array([[1, 1], [1, 2], [10, 10], [10, 11]], dtype=np.float64)
+    y = np.array([0, 0, 1, 1], dtype=np.float64)
+    model = train("random_forest", X, y, n_estimators=5, random_state=42, verbose=False)
+    preds = model.predict(X)
+    assert np.array_equal(preds, y)
+
+
+def test_gradient_boosting():
+    X = np.array([[1, 1], [1, 2], [10, 10], [10, 11]], dtype=np.float64)
+    y = np.array([0, 0, 1, 1], dtype=np.float64)
+    model = train(
+        "gradient_boosting", X, y, n_estimators=5, random_state=42, verbose=False
+    )
+    preds = model.predict(X)
+    assert np.array_equal(preds, y)
+
+
+def test_dbscan():
+    X = np.array([[1, 1], [1, 1.1], [10, 10], [10, 10.1]], dtype=np.float64)
+    model = train("dbscan", X, eps=1.0, min_samples=2, verbose=False)
+    # the first two should be cluster 0, next two cluster 1
+    assert model.labels_[0] == model.labels_[1]
+    assert model.labels_[2] == model.labels_[3]
+    assert model.labels_[0] != model.labels_[2]
+
+
+def test_hierarchical():
+    X = np.array([[1, 1], [1, 1.1], [10, 10], [10, 10.1]], dtype=np.float64)
+    model = train("hierarchical", X, n_clusters=2, verbose=False)
+    assert model.labels_[0] == model.labels_[1]
+    assert model.labels_[2] == model.labels_[3]
+    assert model.labels_[0] != model.labels_[2]
