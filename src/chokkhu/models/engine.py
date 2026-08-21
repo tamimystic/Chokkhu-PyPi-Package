@@ -18,11 +18,12 @@ from .ml import (
     NaiveBayes,
     RandomForest,
 )
+from .rl import QLearning
 
 
 def train(
     model: str,
-    X_train: np.ndarray,
+    X_train: np.ndarray | None = None,
     y_train: np.ndarray | None = None,
     task: str = "auto",
     random_state: int | None = None,
@@ -78,6 +79,8 @@ def train(
             random_state=random_state,
             **kwargs,
         )
+    elif model == "q_learning":
+        model_obj = QLearning(random_state=random_state, **kwargs)
     else:
         raise ValueError(f"Model {model} is not supported yet.")
 

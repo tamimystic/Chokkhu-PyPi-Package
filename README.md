@@ -209,6 +209,61 @@ for fold, (train_df, val_df) in enumerate(ck.split(df, method="kfold", n_splits=
 
 ---
 
+
+### 7. Model Training (`chokkhu.train`)
+
+Chokkhu provides a unified, single-function API `chokkhu.train()` to train any machine learning or reinforcement learning model. All models are implemented completely from scratch using pure NumPy and SciPy.
+
+**Dynamic Hyperparameters:** You can pass *any* hyperparameter dynamically as `**kwargs` directly into the `train()` function to override the defaults.
+
+#### Supervised Learning
+*   **Models:** `linear_regression`, `ridge`, `lasso`, `elastic_net`, `logistic_regression`, `knn`, `naive_bayes`, `svm`, `decision_tree`, `random_forest`, `gradient_boosting`
+```python
+# Train a Random Forest with default parameters
+model = ck.train(model="random_forest", X_train=X_train, y_train=y_train)
+
+# Override hyperparameters dynamically!
+model = ck.train(
+    model="random_forest",
+    X_train=X_train,
+    y_train=y_train,
+    n_estimators=500,
+    max_depth=15,
+    min_samples_split=5
+)
+```
+
+#### Unsupervised Learning
+*   **Models:** `kmeans`, `dbscan`, `hierarchical`
+```python
+# Train DBSCAN clustering
+model = ck.train(
+    model="dbscan",
+    X_train=X_train,
+    eps=1.5,
+    min_samples=10
+)
+```
+
+#### Reinforcement Learning (RL)
+*   **Models:** `q_learning` (more coming soon!)
+*   **Environments:** Comes with built-in lightweight environments (like `GridWorld`), or you can pass your own custom OpenAI Gym environment!
+```python
+# Using default built-in GridWorld environment
+model = ck.train(model="q_learning", episodes=1000)
+
+# Using your own custom environment
+model = ck.train(
+    model="q_learning",
+    env=my_custom_gym_env,
+    episodes=5000,
+    learning_rate=0.01,
+    epsilon_decay=0.99
+)
+```
+
+---
+
 ## Feature Matrix Summary
 
 | Category | Modules & Algorithms Available |
@@ -218,6 +273,7 @@ for fold, (train_df, val_df) in enumerate(ck.split(df, method="kfold", n_splits=
 | **Cleaning** | KNN Imputer, MICE (Iterative), Tukey IQR, Isolation Forest, Z-Score, Winsorization, Auto Dtype Fixer |
 | **Preprocessing** | Standard, MinMax, Robust, Power, Quantile Scalers; One-Hot, Target, Binary, Frequency Encoders; Variance, Correlation, Mutual Info, RFE Selectors |
 | **Transformation** | PCA, SVD, LDA, t-SNE, SMOTE, ADASYN, Tomek Links, Image Augmentation (Flip, Rotation, Brightness, Noise, Crop, Blur, Cutout, Mixup), Polynomial Features |
+| **ML Models** | Linear/Logistic Regression, KNN, Naive Bayes, SVM, Decision Tree, Random Forest, GBM, K-Means, DBSCAN, Hierarchical, Q-Learning (RL) |
 | **Splitting** | Train/Test, Train/Val/Test (3-way), Stratified Splitting, K-Fold, Stratified K-Fold, TimeSeriesSplit |
 
 ---
