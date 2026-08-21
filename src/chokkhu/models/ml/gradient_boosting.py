@@ -32,11 +32,20 @@ class GradientBoosting(ChokkhuModel):
 
         self.trees = []
 
+        try:
+            from tqdm import tqdm
+
+            iterator = tqdm(
+                range(self.n_estimators), desc=f"Training GBM ({self.task})"
+            )
+        except ImportError:
+            iterator = range(self.n_estimators)
+
         if self.task == "regression":
             self.initial_prediction = float(np.mean(y))
             y_pred = np.full(np.shape(y), self.initial_prediction)
 
-            for _ in range(self.n_estimators):
+            for _ in iterator:
                 residuals = y - y_pred
                 tree = DecisionTree(task="regression", max_depth=self.max_depth)
                 tree.fit(X, residuals)
@@ -49,7 +58,7 @@ class GradientBoosting(ChokkhuModel):
             self.initial_prediction = 0.0
             y_pred = np.full(np.shape(y), self.initial_prediction)
 
-            for _ in range(self.n_estimators):
+            for _ in iterator:
                 p = 1 / (1 + np.exp(-y_pred))
                 residuals = y - p
 

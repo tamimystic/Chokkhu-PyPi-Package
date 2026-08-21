@@ -33,7 +33,14 @@ class LogisticRegression(ChokkhuModel):
         self.weights = np.zeros(n_features)
         self.bias = 0.0
 
-        for _ in range(self.epochs):
+        try:
+            from tqdm import tqdm
+
+            iterator = tqdm(range(self.epochs), desc="Training Logistic Regression")
+        except ImportError:
+            iterator = range(self.epochs)
+
+        for _ in iterator:
             linear_model = np.dot(X, self.weights) + self.bias
             y_pred = self._sigmoid(linear_model)
             error = y_pred - y

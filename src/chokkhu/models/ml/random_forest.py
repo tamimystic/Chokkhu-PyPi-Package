@@ -34,7 +34,16 @@ class RandomForest(ChokkhuModel):
             np.random.seed(self.random_state)
 
         self.trees = []
-        for _ in range(self.n_estimators):
+        try:
+            from tqdm import tqdm
+
+            iterator = tqdm(
+                range(self.n_estimators), desc="Building Trees (Random Forest)"
+            )
+        except ImportError:
+            iterator = range(self.n_estimators)
+
+        for _ in iterator:
             tree = DecisionTree(
                 task=self.task,
                 max_depth=self.max_depth,
@@ -44,6 +53,7 @@ class RandomForest(ChokkhuModel):
             X_samp, y_samp = self._bootstrap_samples(X, y)
             tree.fit(X_samp, y_samp)
             self.trees.append(tree)
+
         return self
 
     def _bootstrap_samples(

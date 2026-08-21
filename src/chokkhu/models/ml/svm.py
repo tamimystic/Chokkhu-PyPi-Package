@@ -35,7 +35,14 @@ class SVM(ChokkhuModel):
         self.weights = np.zeros(n_features)
         self.bias = 0.0
 
-        for _ in range(self.epochs):
+        try:
+            from tqdm import tqdm
+
+            iterator = tqdm(range(self.epochs), desc="Training SVM")
+        except ImportError:
+            iterator = range(self.epochs)
+
+        for _ in iterator:
             for idx, x_i in enumerate(X):
                 condition = y_[idx] * (np.dot(x_i, self.weights) + self.bias) >= 1
                 if condition:
