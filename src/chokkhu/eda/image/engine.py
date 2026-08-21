@@ -60,7 +60,18 @@ class ImageEDA:
             self.results["df_metrics"].to_csv(csv_path, index=False)
             from chokkhu.reports.html_builder import HTMLReportBuilder
 
+            html_path = os.path.join(self.save_dir, "chokkhu_report.html")
             HTMLReportBuilder.build(self.save_dir, title="Chokkhu Image EDA Report")
+
+            # Display inline if inside a Jupyter Notebook
+            try:
+                from IPython.display import display, HTML
+
+                with open(html_path, "r", encoding="utf-8") as f:
+                    display(HTML(f.read()))
+            except ImportError:
+                pass
+
             Logger.info(f"Image EDA Complete! All reports saved at: {self.save_dir}")
 
     def _analyze_data(self) -> dict:

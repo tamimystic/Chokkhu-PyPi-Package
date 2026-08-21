@@ -107,8 +107,20 @@ class TabularEDAEngine:
         if self.save_reports:
             self._save_json()
             from chokkhu.reports.html_builder import HTMLReportBuilder
+            import os
 
+            html_path = os.path.join(self.save_dir, "chokkhu_report.html")
             HTMLReportBuilder.build(self.save_dir, title="Chokkhu Tabular EDA Report")
+
+            # Display inline if inside a Jupyter Notebook
+            try:
+                from IPython.display import display, HTML
+
+                with open(html_path, "r", encoding="utf-8") as f:
+                    display(HTML(f.read()))
+            except ImportError:
+                pass
+
         Logger.info("Tabular EDA Pipeline completed successfully.")
         return self.results
 
