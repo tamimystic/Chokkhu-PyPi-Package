@@ -1,12 +1,64 @@
-site_name: Chokkhu Documentation
+﻿site_name: Chokkhu Documentation
+site_description: Minimalistic Code. Maximum Output. Zero Heavy Dependencies.
+site_author: tamimystic
+repo_name: tamimystic/chokkhu
+repo_url: https://github.com/tamimystic/chokkhu
+
 theme:
   name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
   palette:
-    primary: indigo
-    accent: deep purple
-nav:
-  - Home: index.md
-  - Tabular Examples: example_tabular.md
-  - Image Examples: example_image.md
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: deep purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: deep purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+
 plugins:
   - search
+
+nav:
+  - Home: index.md
+  - Getting Started: getting_started.md
+  - Core API Reference:
+    - Loading Data: api/load.md
+    - Exploratory Data Analysis: api/eda.md
+    - Data Cleaning: api/clean.md
+    - Preprocessing: api/preprocess.md
+    - Transformation: api/transform.md
+    - Splitting Data: api/split.md
+  - Machine Learning:
+    - Training Models: api/train.md
+    - Evaluation Metrics: api/evaluate.md
+  - Examples:
+    - Tabular Pipeline: examples/tabular.md
+    - Image Pipeline: examples/image.md
