@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 from chokkhu.evaluation.metrics import (
     accuracy_score,
     confusion_matrix,

@@ -82,16 +82,21 @@ class TabularEDAEngine:
         self.results["global_eda"] = GlobalAnalyzer.analyze(self.df)
         self.results["univariate"] = UnivariateAnalyzer.analyze(self.df)
         type_mapping = self.results["univariate"]["type_mapping"]
-        print("\nData Type Classification:")
-        print("Categorical Data:")
-        print(f"  Ordinal: {type_mapping['categorical']['ordinal']}")
-        print(f"  Nominal: {type_mapping['categorical']['nominal']}")
-        print("Numerical Data:")
-        print(f"  Discrete: {type_mapping['numerical']['discrete']}")
-        print(f"  Continuous: {type_mapping['numerical']['continuous']}")
-        print("Specialized Data:")
-        print(f"  DateTime: {type_mapping['specialized']['datetime']}")
-        print(f"  Text: {type_mapping['specialized']['text']}\n")
+        from chokkhu.core.visualizer import PlotVisualizer
+
+        md_text = (
+            "## Data Type Classification\n"
+            "**Categorical Data:**\n"
+            f"- Ordinal: {type_mapping['categorical']['ordinal']}\n"
+            f"- Nominal: {type_mapping['categorical']['nominal']}\n\n"
+            "**Numerical Data:**\n"
+            f"- Discrete: {type_mapping['numerical']['discrete']}\n"
+            f"- Continuous: {type_mapping['numerical']['continuous']}\n\n"
+            "**Specialized Data:**\n"
+            f"- DateTime: {type_mapping['specialized']['datetime']}\n"
+            f"- Text: {type_mapping['specialized']['text']}\n"
+        )
+        PlotVisualizer.display_markdown(md_text)
         self.results["bivariate"] = BivariateAnalyzer.analyze(self.df, self.target_col)
         self.results["multivariate"] = MultivariateAnalyzer.analyze(
             self.df, self.target_col

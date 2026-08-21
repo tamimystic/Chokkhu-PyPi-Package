@@ -45,6 +45,7 @@ class LinearRegression(ChokkhuModel):
 
             try:
                 from tqdm import tqdm
+
                 iterator = tqdm(range(self.epochs), desc="Training Linear Regression")
                 has_tqdm = True
             except ImportError:
@@ -71,7 +72,7 @@ class LinearRegression(ChokkhuModel):
                 self.bias -= self.learning_rate * float(db)
 
                 if has_tqdm and epoch % max(1, self.epochs // 10) == 0:
-                    mse = np.mean(error ** 2)
+                    mse = np.mean(error**2)
                     iterator.set_postfix({"mse": f"{mse:.4f}"})
 
                 if np.max(np.abs(self.learning_rate * dw)) < self.tolerance:

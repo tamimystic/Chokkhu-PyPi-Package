@@ -1,6 +1,5 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 import numpy as np
-import pandas as pd
 from chokkhu.core.logger import Logger
 from chokkhu.evaluation.metrics import (
     accuracy_score,

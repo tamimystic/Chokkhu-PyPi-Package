@@ -35,6 +35,7 @@ class LogisticRegression(ChokkhuModel):
 
         try:
             from tqdm import tqdm
+
             iterator = tqdm(range(self.epochs), desc="Training Logistic Regression")
             has_tqdm = True
         except ImportError:
@@ -56,9 +57,11 @@ class LogisticRegression(ChokkhuModel):
 
             self.weights -= self.learning_rate * dw
             self.bias -= self.learning_rate * float(db)
-            
+
             if has_tqdm and epoch % max(1, self.epochs // 10) == 0:
-                loss = -np.mean(y * np.log(y_pred + 1e-9) + (1 - y) * np.log(1 - y_pred + 1e-9))
+                loss = -np.mean(
+                    y * np.log(y_pred + 1e-9) + (1 - y) * np.log(1 - y_pred + 1e-9)
+                )
                 iterator.set_postfix({"loss": f"{loss:.4f}"})
 
             if np.max(np.abs(self.learning_rate * dw)) < self.tolerance:
