@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__version__ = "0.6.7"
+__version__ = "0.7.0"
 __author__ = "tamimystic"
 
 from .cleaning import clean
@@ -19,6 +19,7 @@ from .transformation import (
     PolynomialFeatures,
     transform,
 )
+from .models import train
 
 
 class EDAWrapper:
@@ -65,4 +66,5 @@ __all__ = [
     "SMOTE",
     "ImageAugmenter",
     "PolynomialFeatures",
+    "train",
 ]
