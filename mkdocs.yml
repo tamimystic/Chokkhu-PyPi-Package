@@ -1,5 +1,5 @@
 ﻿site_name: Chokkhu Documentation
-site_description: Minimalistic Code. Maximum Output. Zero Heavy Dependencies.
+site_description: A Complete High-Performance Machine Learning Toolkit
 site_author: tamimystic
 repo_name: tamimystic/chokkhu
 repo_url: https://github.com/tamimystic/chokkhu
@@ -7,15 +7,13 @@ repo_url: https://github.com/tamimystic/chokkhu
 theme:
   name: material
   features:
-    - navigation.tabs
     - navigation.sections
     - navigation.top
     - search.suggest
     - search.highlight
     - content.code.copy
-    - content.code.annotate
+    - content.tabs.link
   palette:
-    # Light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
       primary: indigo
@@ -23,7 +21,6 @@ theme:
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
-    # Dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: indigo
@@ -35,11 +32,20 @@ theme:
 markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
   - pymdownx.inlinehilite
   - pymdownx.snippets
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
   - admonition
   - pymdownx.details
+  - tables
   - attr_list
   - md_in_html
 
@@ -49,16 +55,15 @@ plugins:
 nav:
   - Home: index.md
   - Getting Started: getting_started.md
-  - Core API Reference:
-    - Loading Data: api/load.md
+  - API Reference:
+    - Load (Data I/O): api/load.md
     - Exploratory Data Analysis: api/eda.md
     - Data Cleaning: api/clean.md
     - Preprocessing: api/preprocess.md
     - Transformation: api/transform.md
-    - Splitting Data: api/split.md
-  - Machine Learning:
-    - Training Models: api/train.md
-    - Evaluation Metrics: api/evaluate.md
+    - Data Splitting: api/split.md
+    - Model Training: api/train.md
+    - Model Evaluation: api/evaluate.md
   - Examples:
     - Tabular Pipeline: examples/tabular.md
     - Image Pipeline: examples/image.md

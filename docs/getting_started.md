@@ -2,15 +2,15 @@
 
 ## Installation
 
-Install Chokkhu directly from PyPI via pip:
+Install Chokkhu directly from the Python Package Index (PyPI) via pip:
 
 `ash
 pip install --upgrade chokkhu
 `
 
-## Requirements
+## Core Requirements
 
-Chokkhu is designed to be lightweight. Its core dependencies are automatically installed:
+Chokkhu is designed to be extremely lightweight. Its core dependencies are automatically installed during the pip installation process:
 - 
 umpy
 - pandas
@@ -20,19 +20,31 @@ umpy
 - opencv-python-headless
 - 	qdm
 
-## Basic Philosophy
+## Functional API Paradigm
 
-Chokkhu operates on a functional API design. Instead of instantiating complex classes, you pass your dataset through a series of pure functions. Each function accepts kwargs that allow maximum customizability for advanced users, while providing sensible defaults for beginners.
+Chokkhu operates on a strict functional API paradigm. Rather than instantiating complex class objects for basic tasks, you pass your dataset through a series of pure functions. 
 
-### The 8 Pillars of Chokkhu
+Each function utilizes **kwargs to allow maximum customizability for advanced users, while maintaining sensible, robust defaults for beginners.
 
-1. ck.load()
-2. ck.eda.tabular() / ck.eda.image()
-3. ck.clean()
-4. ck.preprocess()
-5. ck.transform()
-6. ck.split()
-7. ck.train()
-8. ck.evaluate()
+### Example Workflow
 
-Explore the **Core API Reference** on the left menu to learn how to master each pillar.
+`python
+import chokkhu as ck
+
+# Load the dataset
+df = ck.load("dataset.csv")
+
+# Perform automated EDA
+ck.eda.tabular(df, target_col="target")
+
+# Clean, Preprocess, and Split
+df_clean = ck.clean(df, missing="knn", outliers="isolation_forest")
+df_proc, state = ck.preprocess(df_clean, target="target", scale="standard")
+X_train, X_test, y_train, y_test = ck.split(df_proc, target="target")
+
+# Train and Evaluate
+model = ck.train("random_forest", X_train, y_train, n_estimators=100)
+results = ck.evaluate(model, X_test, y_test)
+`
+
+Please navigate to the **API Reference** section to explore the detailed parameters for each function.
