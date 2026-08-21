@@ -20,7 +20,7 @@ from .transformation import (
     transform,
 )
 from .models import train
-
+from .evaluation import evaluate
 
 class EDAWrapper:
 
@@ -67,4 +67,5 @@ __all__ = [
     "ImageAugmenter",
     "PolynomialFeatures",
     "train",
+    "evaluate",
 ]
