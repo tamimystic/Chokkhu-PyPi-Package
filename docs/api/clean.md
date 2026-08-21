@@ -1,43 +1,51 @@
-# Data Cleaning (`ck.clean`)
+# Data Cleaning (ck.clean)
 
-An all-in-one data sanitation function to intelligently handle missing values, outliers, duplicate records, and data type inferences.
+The data cleaning pipeline in Chokkhu handles missing values, outliers, and duplicates simultaneously.
 
-## Syntax
+## Default Behavior
+If you run `ck.clean(df)` without any parameters, the default behavior is:
+- Missing values are filled using the `"median"` value of the column.
+- Columns with more than 50% missing data are dropped completely.
+- Outliers are detected using the `"iqr"` (Interquartile Range) method and are removed.
+- Duplicate rows are detected and removed.
+- Data types are automatically optimized (e.g., float64 to float32).
 
-```python
-import chokkhu as ck
+---
 
-df_cleaned = ck.clean(
-    data=df,
-    missing="knn",
-    outliers="iqr",
-    duplicates=True,
-    fix_data_types=True
-)
-```
+## Detailed Parameters Configuration
 
-## Parameters
+You can customize everything. Here are the detailed parameters:
 
-| Parameter | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `data` | `pd.DataFrame` | Required | The input DataFrame to clean. |
-| `missing` | `str` | `"median"` | Missing value imputation strategy. Options: `"mean"`, `"median"`, `"mode"`, `"knn"`, `"iterative"`, `None`. |
-| `missing_threshold` | `float` | `0.5` | Drops columns that have a missing ratio greater than this threshold. |
-| `knn_k` | `int` | `5` | The number of neighbors to use if `missing="knn"`. |
-| `outliers` | `str` | `"iqr"` | Outlier detection strategy. Options: `"iqr"`, `"zscore"`, `"isolation_forest"`, `None`. |
-| `outlier_action` | `str` | `"remove"` | What to do with detected outliers. Options: `"remove"`, `"clip"`. |
-| `zscore_threshold` | `float`| `3.0` | The Z-score threshold for outlier detection. |
-| `duplicates` | `bool` | `True` | If True, duplicate rows are removed. |
-| `fix_data_types`| `bool` | `True` | If True, automatically downcasts numeric types and detects datetimes. |
+### Missing Value Parameters
+- **`missing`** (str): Default `"median"`. 
+  - *Dynamic Options:* 
+    - `"mean"`: Replaces with average.
+    - `"mode"`: Replaces with most frequent value.
+    - `"knn"`: Uses K-Nearest Neighbors to predict missing values based on similar rows.
+    - `"iterative"`: Uses other features to predict missing values in a loop (MICE).
+    - `None`: Skips missing value treatment.
+- **`missing_threshold`** (float): Default `0.5`. Any column with a missing ratio above this is dropped.
+- **`fill_value`** (Any): Default `0`. Used if you select a constant fill strategy.
+- **`knn_k`** (int): Default `5`. Only active if `missing="knn"`. Number of neighbors to use.
+- **`iterative_max_iter`** (int): Default `10`. Only active if `missing="iterative"`. Number of imputation rounds.
 
-??? example "Advanced Cleaning Configuration"
-    ```python
-    df_clean = ck.clean(
-        data=df,
-        missing="iterative",
-        iterative_max_iter=20,
-        outliers="isolation_forest",
-        outlier_action="clip",
-        fix_data_types=True
-    )
-    ```
+### Outlier Parameters
+- **`outliers`** (str): Default `"iqr"`.
+  - *Dynamic Options:*
+    - `"iqr"`: Values outside 1.5 * IQR are flagged.
+    - `"zscore"`: Values with Z-score > threshold are flagged.
+    - `"isolation_forest"`: Anomaly detection using a tree-based machine learning model.
+    - `None`: Skips outlier treatment.
+- **`outlier_action`** (str): Default `"remove"`. 
+  - *Dynamic Options:* 
+    - `"remove"`: Deletes the outlier rows entirely.
+    - `"clip"`: Replaces outlier values with the upper/lower threshold boundaries.
+- **`outlier_threshold`** (float): Default `1.5`. Multiplier used for IQR.
+- **`zscore_threshold`** (float): Default `3.0`. Standard deviation limit used for Z-score.
+
+### Duplicate Parameters
+- **`duplicates`** (bool): Default `True`. If True, removes identical rows.
+- **`duplicate_keep`** (str): Default `"first"`. Options: `"first"`, `"last"`, `False` (drops all duplicates).
+
+### Data Type Parameters
+- **`fix_data_types`** (bool): Default `True`. Automatically downcasts numerical columns to save memory and converts objects to categorical types.

@@ -1,32 +1,45 @@
-# Data Preprocessing (`ck.preprocess`)
+# Data Preprocessing (ck.preprocess)
 
-Handles automated feature scaling and categorical encoding. It returns both the processed DataFrame and a `preprocessor_state` object containing the fitted scalers/encoders, allowing you to inverse-transform or apply identical processing to test data later.
+The preprocessing module prepares your cleaned data for machine learning algorithms by scaling numerical features and encoding categorical features.
 
-## Syntax
+## Default Behavior
+If you run `ck.preprocess(df, target="price")`, the default behavior is:
+- The column "price" is excluded from scaling/encoding and saved as the target.
+- All numerical columns are scaled using `"standard"` scaling (mean=0, variance=1).
+- All categorical columns are encoded using `"onehot"` encoding.
+- The function returns the new DataFrame and a `state` object.
 
-```python
-import chokkhu as ck
+---
 
-df_proc, state = ck.preprocess(
-    data=df,
-    target="target_column",
-    scale="standard",
-    encode="onehot"
-)
-```
+## Detailed Parameters Configuration
 
-## Parameters
+### Target Handling (Strict)
+- **`target`** (str): Default `None`. You must pass the name of your target column (e.g., the value you want to predict). The pipeline will ignore this column so it doesn't get incorrectly scaled.
 
-| Parameter | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `data` | `pd.DataFrame` | Required | The input DataFrame. |
-| `target` | `str` | `None` | The target column. This column will be excluded from standard feature scaling. |
-| `scale` | `str` | `"standard"` | Scaling strategy. Options: `"standard"`, `"minmax"`, `"robust"`, `"maxabs"`, `None`. |
-| `encode` | `str` | `"onehot"` | Encoding strategy for categorical variables. Options: `"onehot"`, `"label"`, `"ordinal"`, `"frequency"`, `None`. |
-| `select_features`| `str` | `None` | Feature selection strategy. Options: `"correlation"`, `"mutual_info"`. |
-| `top_k_features` | `int` | `10` | The number of top features to retain if `select_features` is active. |
+### Scaling Parameters (Dynamic)
+- **`scale`** (str): Default `"standard"`.
+  - *Options:*
+    - `"standard"`: Removes mean and scales to unit variance (Z-score normalization).
+    - `"minmax"`: Scales features to lie between 0 and 1.
+    - `"robust"`: Uses median and quantiles, making it robust to extreme outliers.
+    - `"maxabs"`: Scales by dividing through the largest maximum value.
+    - `None`: Disables numerical scaling.
 
-## Returns
+### Encoding Parameters (Dynamic)
+- **`encode`** (str): Default `"onehot"`.
+  - *Options:*
+    - `"onehot"`: Creates binary columns (0 or 1) for each category. Best for non-ordinal data.
+    - `"label"`: Converts categories to integers (0, 1, 2...). Best for ordinal data or tree-based models.
+    - `"frequency"`: Replaces categories with their frequency percentage in the dataset.
+    - `None`: Disables categorical encoding.
 
-- **processed_data** (`pd.DataFrame`): The transformed DataFrame.
-- **state** (`dict`): A dictionary containing the fitted instances (e.g., `StandardScaler`, `OneHotEncoder`) used during the transformation.
+### Feature Selection Parameters (Dynamic)
+- **`select_features`** (str): Default `None`.
+  - *Options:*
+    - `"correlation"`: Drops features that are highly correlated with each other to reduce multicollinearity.
+    - `"mutual_info"`: Selects features that have the highest mutual information score with the target.
+- **`top_k_features`** (int): Default `10`. Only active if `select_features` is used. Specifies how many top features to keep.
+
+## The State Object
+The function returns `df_processed, state`. 
+The `state` dictionary contains the trained scalers and encoders. You must save this state if you want to preprocess new, unseen testing data later using the exact same scaling parameters!

@@ -1,49 +1,25 @@
-# Transformation & Augmentation (`ck.transform`)
+# Transformation & Augmentation (ck.transform)
 
 Handles advanced dataset transformations including dimensionality reduction (PCA, t-SNE), class imbalance resampling (SMOTE), polynomial feature engineering, and image augmentations.
 
-## Syntax (Tabular)
+## Tabular Transformation Parameters
 
-```python
-import chokkhu as ck
+- **Default usage:** `ck.transform(df, target="price", pca=10)`
+- **Strict Parameters:**
+  - `data` (pd.DataFrame): The input DataFrame.
+- **Dynamic Parameters (Changeable):**
+  - `target` (str): Default `None`. Required if you are doing resampling (like SMOTE).
+  - `pca` (int): Default `None`. Retains the specified number of principal components.
+  - `tsne` (int): Default `None`. Retains the specified number of components (usually 2 or 3).
+  - `resample` (str): Default `None`. Handles class imbalance. Options: `"smote"`, `"adasyn"`, `"over"`, `"under"`.
+  - `polynomial` (int): Default `None`. Generates polynomial features up to the specified degree.
 
-df_transformed = ck.transform(
-    data=df,
-    target="target_column",
-    pca=10,
-    resample="smote"
-)
-```
+## Image Augmentation Parameters
 
-## Syntax (Image)
-
-```python
-import chokkhu as ck
-
-aug_images = ck.transform(
-    data=images_dict,
-    augment=True,
-    augment_techniques=["horizontal_flip", "rotate", "noise"],
-    augment_factor=3
-)
-```
-
-## Tabular Parameters
-
-| Parameter | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `data` | `pd.DataFrame` | Required | The input DataFrame. |
-| `target` | `str` | Required | The target column (needed for resampling). |
-| `pca` | `int` | `None` | Applies PCA and retains the specified number of components. |
-| `tsne` | `int` | `None` | Applies t-SNE and retains the specified number of components. |
-| `resample` | `str` | `None` | Handles class imbalance. Options: `"smote"`, `"adasyn"`, `"over"`, `"under"`. |
-| `polynomial` | `int` | `None` | Generates polynomial features up to the specified degree. |
-
-## Image Parameters
-
-| Parameter | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `data` | `dict` | Required | Dictionary containing `"images"` and `"labels"`. |
-| `augment` | `bool` | `False` | Enables image augmentation. |
-| `augment_techniques` | `list` | `[]` | List of techniques to apply randomly. Options: `"horizontal_flip"`, `"rotate"`, `"brightness"`, `"noise"`, `"crop"`, `"blur"`, `"cutout"`. |
-| `augment_factor` | `int` | `1` | The multiplier for the dataset size (e.g., `2` generates two augmented variants per original image). |
+- **Default usage:** `ck.transform(images_dict, augment=True, augment_factor=2)`
+- **Strict Parameters:**
+  - `data` (dict): Must contain `"images"` and `"labels"`.
+- **Dynamic Parameters (Changeable):**
+  - `augment` (bool): Default `False`. Must be True to enable augmentation.
+  - `augment_techniques` (list): Default `[]` (randomly applies all). Options: `"horizontal_flip"`, `"rotate"`, `"brightness"`, `"noise"`, `"crop"`, `"blur"`, `"cutout"`.
+  - `augment_factor` (int): Default `1`. The multiplier for the dataset size.
