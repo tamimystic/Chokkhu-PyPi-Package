@@ -43,7 +43,15 @@ class LinearRegression(ChokkhuModel):
             self.weights = np.zeros(n_features)
             self.bias = 0.0
 
-            for _ in range(self.epochs):
+            try:
+                from tqdm import tqdm
+                iterator = tqdm(range(self.epochs), desc="Training Linear Regression")
+                has_tqdm = True
+            except ImportError:
+                iterator = range(self.epochs)
+                has_tqdm = False
+
+            for epoch in iterator:
                 y_pred = np.dot(X, self.weights) + self.bias
                 error = y_pred - y
 
@@ -61,6 +69,10 @@ class LinearRegression(ChokkhuModel):
 
                 self.weights -= self.learning_rate * dw
                 self.bias -= self.learning_rate * float(db)
+
+                if has_tqdm and epoch % max(1, self.epochs // 10) == 0:
+                    mse = np.mean(error ** 2)
+                    iterator.set_postfix({"mse": f"{mse:.4f}"})
 
                 if np.max(np.abs(self.learning_rate * dw)) < self.tolerance:
                     break
